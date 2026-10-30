@@ -11,8 +11,10 @@ export function generateId(): string {
   return crypto.randomUUID();
 }
 
-/** Unix timestamp (seconds) → Date */
+/** Unix timestamp (seconds or ms) → Date */
 export function fromUnix(ts: number): Date {
+  if (typeof ts !== "number" || isNaN(ts)) return new Date();
+  if (ts > 1e11) return new Date(ts);
   return new Date(ts * 1000);
 }
 
@@ -26,9 +28,50 @@ export function nowUnix(): number {
   return toUnix(new Date());
 }
 
-/** Format a Unix timestamp for display */
-export function formatDate(ts: number, fmt = "dd/MM/yyyy"): string {
-  return format(fromUnix(ts), fmt);
+/** Format a Unix timestamp for display (safe against undefined / invalid numbers) */
+export function formatDate(
+  ts: number | string | Date | null | undefined,
+  fmt = "dd/MM/yyyy"
+): string {
+  if (ts === null || ts === undefined || ts === "") return "—";
+  if (ts instanceof Date) {
+    return isNaN(ts.getTime()) ? "—" : format(ts, fmt);
+  }
+  const num = typeof ts === "number" ? ts : Number(ts);
+  if (isNaN(num) || num <= 0) return "—";
+  try {
+    const d = fromUnix(num);
+    if (isNaN(d.getTime())) return "—";
+    return format(d, fmt);
+  } catch {
+    return "—";
+  }
+}
+
+/** Converts snake_case keys in objects/arrays to camelCase while preserving original keys */
+export function snakeToCamel<T = any>(obj: any): T {
+  if (Array.isArray(obj)) {
+    return obj.map((v) => snakeToCamel(v)) as unknown as T;
+  }
+  if (
+    obj !== null &&
+    obj !== undefined &&
+    typeof obj === "object" &&
+    obj.constructor === Object
+  ) {
+    const newObj: any = {};
+    for (const key of Object.keys(obj)) {
+      const camelKey = key.replace(/_([a-z0-9])/g, (_, letter) =>
+        letter.toUpperCase()
+      );
+      newObj[camelKey] = snakeToCamel(obj[key]);
+      if (camelKey !== key) {
+        newObj[key] = obj[key];
+      }
+    }
+    return newObj;
+  }
+  return obj;
 }
 
 /** Format currency amount */

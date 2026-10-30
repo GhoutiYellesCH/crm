@@ -1,6 +1,7 @@
 import Database from "@tauri-apps/plugin-sql";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import * as schema from "./schema";
+import { snakeToCamel } from "@/lib/utils";
 
 let _database: Database | null = null;
 
@@ -19,7 +20,19 @@ export async function getDatabase(): Promise<Database> {
     } catch {
       // Fallback if running outside Tauri
     }
-    _database = await Database.load(dbUrl);
+    const rawDb = await Database.load(dbUrl);
+    const origSelect = rawDb.select.bind(rawDb);
+    rawDb.select = async <T>(
+      query: string,
+      bindValues?: unknown[]
+    ): Promise<T> => {
+      const res = await origSelect<any>(query, bindValues);
+      if (Array.isArray(res)) {
+        return res.map((row) => snakeToCamel(row)) as unknown as T;
+      }
+      return res;
+    };
+    _database = rawDb;
   }
   return _database;
 }
