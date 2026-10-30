@@ -9,7 +9,17 @@ let _database: Database | null = null;
  */
 export async function getDatabase(): Promise<Database> {
   if (!_database) {
-    _database = await Database.load("sqlite:crm.db");
+    let dbUrl = "sqlite:crm.db";
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const info = await invoke<{ dbPath: string }>("get_db_info");
+      if (info?.dbPath) {
+        dbUrl = `sqlite:${info.dbPath}`;
+      }
+    } catch {
+      // Fallback if running outside Tauri
+    }
+    _database = await Database.load(dbUrl);
   }
   return _database;
 }

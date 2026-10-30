@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { Sun, Moon, Globe } from "lucide-react";
+import { Sun, Moon, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store/useUIStore";
+import { useSecurityLockStore } from "@/store/useSecurityLockStore";
 import { LANGUAGES } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import {
 export function TopBar() {
   const { t } = useTranslation();
   const { theme, language, toggleTheme, setLanguage } = useUIStore();
+  const { isPasswordConfigured, lock } = useSecurityLockStore();
 
   const currentLang = LANGUAGES.find((l) => l.code === language);
 
@@ -53,6 +55,19 @@ export function TopBar() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Lock App Button */}
+        {isPasswordConfigured && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={lock}
+            title="Lock Workspace (App Lock)"
+          >
+            <Lock className="h-4 w-4" />
+          </Button>
+        )}
 
         {/* Theme toggle */}
         <Button

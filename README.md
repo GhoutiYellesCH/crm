@@ -49,15 +49,24 @@ AegisFlow CRM is a powerful, offline-first desktop application designed for solo
 - **Triple Locale**: Full English, French, and Arabic with automatic dynamic RTL (`dir="rtl"`) text direction.
 - **Polished UI**: Custom theme switcher (Dark Mode default & Light Mode) with high-contrast form controls and dropdowns.
 
+### 🔐 9. Master Password App Lock & Offline Cryptographic Vault
+- **Zero-Knowledge App Lock**: Protect clients, finances, and security audits behind an offline SHA-256 salted master password.
+- **Lock Screen & Inactivity Auto-Lock**: Lock on launch, manual "Lock Now" button in the TopBar, and configurable inactivity timeout (Never, 5m, 15m, 30m, 1h).
+
+### 💾 10. Dedicated Data Management & 1-Click USB Backup
+- **Config Directory**: Stores active database at `~/.config/aegisflow/crm.db`.
+- **Automatic USB Flash Drive Detection**: Scans `/media/$USER` and `/run/media/$USER` to offer 1-click external backup creation directly to your USB drive.
+- **Safety Database Restore**: Restores previous backups with magic SQLite header verification and automatic safety snapshots.
+
 ---
 
 ## 🚀 Installation & Downloads
 
 ### Ubuntu / Debian (.deb Package)
-Download the latest `AegisFlow_0.1.0_amd64.deb` from the [Releases](releases/) folder or GitHub Releases, then run:
+Download the latest `AegisFlow_0.1.1_amd64.deb` from the [Releases](releases/) folder or GitHub Releases, then run:
 
 ```bash
-sudo dpkg -i releases/AegisFlow_0.1.0_amd64.deb
+sudo dpkg -i releases/AegisFlow_0.1.1_amd64.deb
 ```
 
 ---
