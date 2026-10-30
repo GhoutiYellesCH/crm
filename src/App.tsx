@@ -13,8 +13,9 @@ function App() {
     root.classList.remove("light", "dark");
     if (theme === "light") {
       root.classList.add("light");
+    } else {
+      root.classList.add("dark");
     }
-    // dark is default via CSS (no class needed)
   }, [theme]);
 
   // Apply RTL direction for Arabic

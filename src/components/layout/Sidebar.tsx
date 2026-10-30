@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AegisFlowLogo } from "@/components/common/AegisFlowLogo";
 
 const NAV_GROUPS = [
   {
@@ -78,18 +79,11 @@ export function Sidebar() {
       {/* Logo / App Name */}
       <div
         className={cn(
-          "flex items-center h-14 border-b border-sidebar-border px-3 gap-3 shrink-0",
-          sidebarCollapsed && "justify-center"
+          "flex items-center h-14 border-b border-sidebar-border px-3 gap-2.5 shrink-0 overflow-hidden",
+          sidebarCollapsed && "justify-center px-0"
         )}
       >
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary shrink-0">
-          <span className="text-primary-foreground font-bold text-sm">P</span>
-        </div>
-        {!sidebarCollapsed && (
-          <span className="font-semibold text-sm text-sidebar-foreground truncate">
-            Personal CRM
-          </span>
-        )}
+        <AegisFlowLogo size={30} showText={!sidebarCollapsed} />
       </div>
 
       {/* Navigation */}

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -72,6 +72,45 @@
 /* RTL Support */
 [dir="rtl"] {
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+/* Form Controls & Select Inputs */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--input)) !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.1em 1.1em;
+  padding-right: 2rem !important;
+}
+
+[dir="rtl"] select {
+  background-position: left 0.5rem center;
+  padding-right: 0.5rem !important;
+  padding-left: 2rem !important;
+}
+
+.light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Dropdown Option Items */
+option, optgroup {
+  background-color: #0b1329 !important;
+  color: #f8fafc !important;
+}
+
+.light option, .light optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 /* Scrollbar styling */

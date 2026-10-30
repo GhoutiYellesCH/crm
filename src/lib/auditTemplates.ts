@@ -38,10 +38,10 @@ export const AUDIT_CHECKLISTS_BY_LEVEL: Record<string, Array<{ category: string;
 };
 
 export const AUDIT_LEVELS = [
-  { value: "black_box", label: "Black Box (External Attacker View)", badge: "bg-slate-800 text-slate-200 border-slate-600" },
-  { value: "user", label: "User Level (Authenticated Threat View)", badge: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-  { value: "admin", label: "Admin Level (Internal Hardening & Config)", badge: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
-  { value: "full", label: "Full Scope (3-Level Complete Audit)", badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
+  { value: "black_box", label: "Black Box (External Attacker View)", badge: "bg-slate-800 text-slate-100 border-slate-600" },
+  { value: "user", label: "User Level (Authenticated Threat View)", badge: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30" },
+  { value: "admin", label: "Admin Level (Internal Hardening & Config)", badge: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30" },
+  { value: "full", label: "Full Scope (3-Level Complete Audit)", badge: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30" },
 ] as const;
 
 export const SEVERITIES = [

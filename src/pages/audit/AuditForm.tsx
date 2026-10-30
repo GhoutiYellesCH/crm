@@ -101,7 +101,7 @@ export function AuditForm({ open, onOpenChange, clients, onSave }: AuditFormProp
               Client Target
             </label>
             <select
-              className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-sm"
+              className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
             >
@@ -119,7 +119,7 @@ export function AuditForm({ open, onOpenChange, clients, onSave }: AuditFormProp
               Audit Scope Level
             </label>
             <select
-              className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-sm"
+              className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs shadow-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               value={level}
               onChange={(e) => setLevel(e.target.value)}
             >
