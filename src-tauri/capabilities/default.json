@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "identifier": "default",
+  "local": true,
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "sql:default",
+    "notification:default",
+    "shell:default"
+  ]
+}

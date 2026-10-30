@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "clients": "العملاء",
+    "tasks": "المهام",
+    "projects": "المشاريع",
+    "finance": "المالية",
+    "bookmarks": "المفضلة",
+    "leads": "قمع العملاء المحتملين",
+    "calendar": "التقويم",
+    "audit": "تقارير التدقيق",
+    "settings": "الإعدادات"
+  },
+  "common": {
+    "search": "بحث...",
+    "new": "جديد",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "loading": "جار التحميل...",
+    "noData": "لا توجد بيانات",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "تاريخ التحديث",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "actions": "الإجراءات",
+    "filters": "الفلاتر",
+    "all": "الكل"
+  },
+  "theme": {
+    "dark": "داكن",
+    "light": "فاتح",
+    "toggle": "تغيير السمة"
+  },
+  "client": {
+    "title": "العملاء",
+    "new": "عميل جديد",
+    "name": "الاسم",
+    "company": "الشركة",
+    "industry": "القطاع",
+    "country": "البلد",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "website": "الموقع الإلكتروني",
+    "linkedin": "لينكدإن",
+    "status": "الحالة",
+    "leadScore": "درجة العميل",
+    "serviceTags": "الخدمات",
+    "notes": "ملاحظات",
+    "statuses": {
+      "lead": "عميل محتمل",
+      "prospect": "مرشح",
+      "proposal": "عرض مقدم",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "closed": "مغلق"
+    }
+  },
+  "task": {
+    "title": "المهام",
+    "new": "مهمة جديدة",
+    "statuses": {
+      "todo": "للتنفيذ",
+      "in_progress": "قيد التنفيذ",
+      "review": "قيد المراجعة",
+      "done": "منجز",
+      "cancelled": "ملغى"
+    },
+    "priorities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "urgent": "عاجلة"
+    }
+  },
+  "project": {
+    "title": "المشاريع",
+    "new": "مشروع جديد",
+    "serviceTypes": {
+      "ai_automation": "أتمتة الذكاء الاصطناعي",
+      "secure_app": "تطبيق آمن",
+      "security_audit": "تدقيق أمني",
+      "photography": "التصوير",
+      "video": "مونتاج فيديو",
+      "branding": "هوية بصرية",
+      "ads_funnels": "إعلانات وقمع مبيعات",
+      "other": "أخرى"
+    }
+  },
+  "finance": {
+    "title": "المالية",
+    "income": "الدخل",
+    "expenses": "المصروفات",
+    "invoices": "الفواتير",
+    "reports": "التقارير",
+    "newInvoice": "فاتورة جديدة",
+    "total": "المجموع",
+    "subtotal": "المجموع الفرعي",
+    "tax": "الضريبة",
+    "discount": "الخصم",
+    "currency": "العملة",
+    "status": {
+      "draft": "مسودة",
+      "sent": "مرسلة",
+      "paid": "مدفوعة",
+      "overdue": "متأخرة",
+      "cancelled": "ملغاة"
+    }
+  },
+  "bookmark": {
+    "title": "المفضلة",
+    "new": "إشارة مرجعية جديدة",
+    "url": "رابط",
+    "categories": {
+      "tools": "الأدوات",
+      "articles": "المقالات",
+      "my_projects": "مشاريعي",
+      "info": "معلومات ومستندات"
+    }
+  },
+  "lead": {
+    "title": "قمع العملاء المحتملين",
+    "search": "البحث عن عملاء محتملين",
+    "enrich": "إثراء البيانات",
+    "score": "تسجيل النقاط",
+    "convert": "تحويل إلى عميل",
+    "stages": {
+      "discovered": "مكتشف",
+      "enriched": "مثري",
+      "scored": "مقيّم",
+      "shortlisted": "مختار",
+      "contacted": "تم التواصل",
+      "qualified": "مؤهل",
+      "converted": "تم التحويل",
+      "rejected": "مرفوض"
+    }
+  },
+  "calendar": {
+    "title": "التقويم",
+    "new": "حدث جديد"
+  },
+  "audit": {
+    "title": "تقارير التدقيق الأمني",
+    "new": "تدقيق جديد",
+    "levels": {
+      "black_box": "الصندوق الأسود",
+      "user": "مستوى المستخدم",
+      "admin": "مستوى المسؤول",
+      "full": "تدقيق كامل"
+    },
+    "severity": {
+      "critical": "حرج",
+      "high": "عالي",
+      "medium": "متوسط",
+      "low": "منخفض",
+      "info": "معلوماتي"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "general": "عام",
+    "apiKeys": "مفاتيح API",
+    "users": "الفريق",
+    "theme": "المظهر",
+    "language": "اللغة",
+    "currency": "العملة الافتراضية",
+    "addApiKey": "إضافة مفتاح API",
+    "provider": "المزود",
+    "apiKey": "مفتاح API"
+  }
+}

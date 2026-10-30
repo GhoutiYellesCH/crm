@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "tasks": "Tasks",
+    "projects": "Projects",
+    "finance": "Finance",
+    "bookmarks": "Bookmarks",
+    "leads": "Lead Funnel",
+    "calendar": "Calendar",
+    "audit": "Audit Reports",
+    "settings": "Settings"
+  },
+  "common": {
+    "search": "Search...",
+    "new": "New",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "noData": "No data found",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "status": "Status",
+    "priority": "Priority",
+    "actions": "Actions",
+    "filters": "Filters",
+    "all": "All"
+  },
+  "theme": {
+    "dark": "Dark",
+    "light": "Light",
+    "toggle": "Toggle theme"
+  },
+  "client": {
+    "title": "Clients",
+    "new": "New Client",
+    "name": "Name",
+    "company": "Company",
+    "industry": "Industry",
+    "country": "Country",
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "linkedin": "LinkedIn",
+    "status": "Status",
+    "leadScore": "Lead Score",
+    "serviceTags": "Services",
+    "notes": "Notes",
+    "statuses": {
+      "lead": "Lead",
+      "prospect": "Prospect",
+      "proposal": "Proposal",
+      "active": "Active",
+      "inactive": "Inactive",
+      "closed": "Closed"
+    }
+  },
+  "task": {
+    "title": "Tasks",
+    "new": "New Task",
+    "statuses": {
+      "todo": "To Do",
+      "in_progress": "In Progress",
+      "review": "Review",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "project": {
+    "title": "Projects",
+    "new": "New Project",
+    "serviceTypes": {
+      "ai_automation": "AI Automation",
+      "secure_app": "Secure App",
+      "security_audit": "Security Audit",
+      "photography": "Photography",
+      "video": "Video Editing",
+      "branding": "Branding",
+      "ads_funnels": "Ads & Funnels",
+      "other": "Other"
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "income": "Income",
+    "expenses": "Expenses",
+    "invoices": "Invoices",
+    "reports": "Reports",
+    "newInvoice": "New Invoice",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "currency": "Currency",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "cancelled": "Cancelled"
+    }
+  },
+  "bookmark": {
+    "title": "Bookmarks",
+    "new": "New Bookmark",
+    "url": "URL",
+    "categories": {
+      "tools": "Tools",
+      "articles": "Articles",
+      "my_projects": "My Projects",
+      "info": "Info & Docs"
+    }
+  },
+  "lead": {
+    "title": "Lead Funnel",
+    "search": "Search Leads",
+    "enrich": "Enrich",
+    "score": "Score",
+    "convert": "Convert to Client",
+    "stages": {
+      "discovered": "Discovered",
+      "enriched": "Enriched",
+      "scored": "Scored",
+      "shortlisted": "Shortlisted",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "converted": "Converted",
+      "rejected": "Rejected"
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "new": "New Event"
+  },
+  "audit": {
+    "title": "Audit Reports",
+    "new": "New Audit",
+    "levels": {
+      "black_box": "Black Box",
+      "user": "User Level",
+      "admin": "Admin Level",
+      "full": "Full Audit"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "info": "Informational"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "apiKeys": "API Keys",
+    "users": "Team Users",
+    "theme": "Appearance",
+    "language": "Language",
+    "currency": "Default Currency",
+    "addApiKey": "Add API Key",
+    "provider": "Provider",
+    "apiKey": "API Key"
+  }
+}

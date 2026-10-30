@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "clients": "Clients",
+    "tasks": "Tâches",
+    "projects": "Projets",
+    "finance": "Finance",
+    "bookmarks": "Favoris",
+    "leads": "Entonnoir de prospects",
+    "calendar": "Calendrier",
+    "audit": "Rapports d'audit",
+    "settings": "Paramètres"
+  },
+  "common": {
+    "search": "Rechercher...",
+    "new": "Nouveau",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée",
+    "createdAt": "Créé le",
+    "updatedAt": "Modifié le",
+    "status": "Statut",
+    "priority": "Priorité",
+    "actions": "Actions",
+    "filters": "Filtres",
+    "all": "Tous"
+  },
+  "theme": {
+    "dark": "Sombre",
+    "light": "Clair",
+    "toggle": "Changer le thème"
+  },
+  "client": {
+    "title": "Clients",
+    "new": "Nouveau client",
+    "name": "Nom",
+    "company": "Entreprise",
+    "industry": "Secteur",
+    "country": "Pays",
+    "email": "Email",
+    "phone": "Téléphone",
+    "website": "Site web",
+    "linkedin": "LinkedIn",
+    "status": "Statut",
+    "leadScore": "Score",
+    "serviceTags": "Services",
+    "notes": "Notes",
+    "statuses": {
+      "lead": "Prospect",
+      "prospect": "Qualifié",
+      "proposal": "Proposition",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "closed": "Fermé"
+    }
+  },
+  "task": {
+    "title": "Tâches",
+    "new": "Nouvelle tâche",
+    "statuses": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "review": "En révision",
+      "done": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "priorities": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "urgent": "Urgent"
+    }
+  },
+  "project": {
+    "title": "Projets",
+    "new": "Nouveau projet",
+    "serviceTypes": {
+      "ai_automation": "Automatisation IA",
+      "secure_app": "App sécurisée",
+      "security_audit": "Audit de sécurité",
+      "photography": "Photographie",
+      "video": "Montage vidéo",
+      "branding": "Identité visuelle",
+      "ads_funnels": "Pubs & Entonnoirs",
+      "other": "Autre"
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "income": "Revenus",
+    "expenses": "Dépenses",
+    "invoices": "Factures",
+    "reports": "Rapports",
+    "newInvoice": "Nouvelle facture",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "tax": "Taxe",
+    "discount": "Remise",
+    "currency": "Devise",
+    "status": {
+      "draft": "Brouillon",
+      "sent": "Envoyée",
+      "paid": "Payée",
+      "overdue": "En retard",
+      "cancelled": "Annulée"
+    }
+  },
+  "bookmark": {
+    "title": "Favoris",
+    "new": "Nouveau favori",
+    "url": "URL",
+    "categories": {
+      "tools": "Outils",
+      "articles": "Articles",
+      "my_projects": "Mes projets",
+      "info": "Info & Docs"
+    }
+  },
+  "lead": {
+    "title": "Entonnoir de prospects",
+    "search": "Rechercher des prospects",
+    "enrich": "Enrichir",
+    "score": "Scorer",
+    "convert": "Convertir en client",
+    "stages": {
+      "discovered": "Découvert",
+      "enriched": "Enrichi",
+      "scored": "Scoré",
+      "shortlisted": "Présélectionné",
+      "contacted": "Contacté",
+      "qualified": "Qualifié",
+      "converted": "Converti",
+      "rejected": "Rejeté"
+    }
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "new": "Nouvel événement"
+  },
+  "audit": {
+    "title": "Rapports d'audit",
+    "new": "Nouvel audit",
+    "levels": {
+      "black_box": "Boîte noire",
+      "user": "Niveau utilisateur",
+      "admin": "Niveau admin",
+      "full": "Audit complet"
+    },
+    "severity": {
+      "critical": "Critique",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "low": "Faible",
+      "info": "Information"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "general": "Général",
+    "apiKeys": "Clés API",
+    "users": "Équipe",
+    "theme": "Apparence",
+    "language": "Langue",
+    "currency": "Devise par défaut",
+    "addApiKey": "Ajouter une clé API",
+    "provider": "Fournisseur",
+    "apiKey": "Clé API"
+  }
+}
