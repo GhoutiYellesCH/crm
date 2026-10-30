@@ -14,6 +14,8 @@ import {
   Building2,
   Receipt,
   CreditCard,
+  Repeat,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +26,8 @@ import { useClientStore } from "@/store/useClientStore";
 import { useTaskProjectStore } from "@/store/useTaskProjectStore";
 import { InvoiceForm } from "./InvoiceForm";
 import { ExpenseForm } from "./ExpenseForm";
+import { RecurringForm } from "./RecurringForm";
+import { ZakatCalculator } from "./ZakatCalculator";
 import { generateInvoicePdf, downloadPdf } from "@/services/pdf/invoicePdf";
 import { formatCurrency, formatDate, INVOICE_STATUS_COLORS } from "@/lib/utils";
 
@@ -32,12 +36,15 @@ export default function FinanceOverview() {
   const {
     invoices,
     transactions,
+    recurring,
     loadData,
     saveInvoiceData,
     changeInvoiceStatus,
     removeInvoice,
     saveTransactionData,
     removeTransaction,
+    saveRecurringData,
+    removeRecurring,
   } = useFinanceStore();
 
   const { clients, loadClients } = useClientStore();
@@ -45,6 +52,7 @@ export default function FinanceOverview() {
 
   const [invoiceFormOpen, setInvoiceFormOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
+  const [recurringFormOpen, setRecurringFormOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
 
   useEffect(() => {
@@ -53,7 +61,7 @@ export default function FinanceOverview() {
     loadProjects();
   }, [loadData, loadClients, loadProjects]);
 
-  // Aggregate Totals (grouped by primary currency or EUR default)
+  // Aggregate Totals
   const totalPaidInvoices = invoices
     .filter((i) => i.status === "paid")
     .reduce((sum, i) => sum + i.total, 0);
@@ -67,6 +75,16 @@ export default function FinanceOverview() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netBalance = totalPaidInvoices - totalExpenses;
+
+  // Monthly Recurring Revenue (MRR)
+  const monthlyRecurringRevenue = recurring
+    .filter((r) => r.status === "active")
+    .reduce((sum, r) => {
+      if (r.frequency === "monthly") return sum + r.amount;
+      if (r.frequency === "quarterly") return sum + r.amount / 3;
+      if (r.frequency === "yearly") return sum + r.amount / 12;
+      return sum;
+    }, 0);
 
   const handleDownloadInvoice = async (inv: any) => {
     const pdfBytes = await generateInvoicePdf({
@@ -99,11 +117,20 @@ export default function FinanceOverview() {
             {t("finance.title")}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Multi-currency revenue, invoice management, expenses, and PDF invoice generation.
+            Multi-currency revenue, MRR subscriptions, expenses, Zakat calculator, and PDF invoices.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs shadow-sm"
+            onClick={() => setRecurringFormOpen(true)}
+          >
+            <Repeat className="h-3.5 w-3.5 text-purple-400" />
+            Add Retainer (MRR)
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -128,78 +155,101 @@ export default function FinanceOverview() {
       </div>
 
       {/* KPI Financial Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <Card className="border-border/60">
-          <CardContent className="p-4 space-y-1">
+          <CardContent className="p-3.5 space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span>Monthly Recurring (MRR)</span>
+              <div className="p-1 rounded-md bg-purple-500/10 text-purple-400">
+                <Repeat className="h-3.5 w-3.5" />
+              </div>
+            </div>
+            <p className="text-xl font-bold text-purple-400">
+              {formatCurrency(monthlyRecurringRevenue, "EUR")}/mo
+            </p>
+            <p className="text-[10px] text-muted-foreground">From active retainers</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60">
+          <CardContent className="p-3.5 space-y-1">
             <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
               <span>Collected Revenue</span>
-              <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400">
-                <ArrowUpRight className="h-4 w-4" />
+              <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-xl font-bold text-foreground">
               {formatCurrency(totalPaidInvoices, "EUR")}
             </p>
-            <p className="text-[10px] text-muted-foreground">From paid client invoices</p>
+            <p className="text-[10px] text-muted-foreground">From paid invoices</p>
           </CardContent>
         </Card>
 
         <Card className="border-border/60">
-          <CardContent className="p-4 space-y-1">
+          <CardContent className="p-3.5 space-y-1">
             <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
               <span>Pending Invoices</span>
-              <div className="p-1.5 rounded-md bg-amber-500/10 text-amber-400">
-                <Clock className="h-4 w-4" />
+              <div className="p-1 rounded-md bg-amber-500/10 text-amber-400">
+                <Clock className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-xl font-bold text-foreground">
               {formatCurrency(totalPendingInvoices, "EUR")}
             </p>
-            <p className="text-[10px] text-muted-foreground">Drafts & sent invoices</p>
+            <p className="text-[10px] text-muted-foreground">Drafts & sent</p>
           </CardContent>
         </Card>
 
         <Card className="border-border/60">
-          <CardContent className="p-4 space-y-1">
+          <CardContent className="p-3.5 space-y-1">
             <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
               <span>Total Expenses</span>
-              <div className="p-1.5 rounded-md bg-rose-500/10 text-rose-400">
-                <ArrowDownRight className="h-4 w-4" />
+              <div className="p-1 rounded-md bg-rose-500/10 text-rose-400">
+                <ArrowDownRight className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-xl font-bold text-foreground">
               {formatCurrency(totalExpenses, "EUR")}
             </p>
-            <p className="text-[10px] text-muted-foreground">Software, infra & operations</p>
+            <p className="text-[10px] text-muted-foreground">Operational costs</p>
           </CardContent>
         </Card>
 
         <Card className="border-border/60">
-          <CardContent className="p-4 space-y-1">
+          <CardContent className="p-3.5 space-y-1">
             <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
               <span>Net Profit</span>
-              <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400">
-                <CreditCard className="h-4 w-4" />
+              <div className="p-1 rounded-md bg-blue-500/10 text-blue-400">
+                <CreditCard className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className={`text-2xl font-bold ${netBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            <p className={`text-xl font-bold ${netBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               {formatCurrency(netBalance, "EUR")}
             </p>
-            <p className="text-[10px] text-muted-foreground">Collected revenue minus expenses</p>
+            <p className="text-[10px] text-muted-foreground">Revenue minus expenses</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Tabs: Invoices vs Expenses Log */}
+      {/* Main Tabs: Invoices, Recurring Revenue, Expenses, and Zakat Calculator */}
       <Tabs defaultValue="invoices" className="w-full">
         <TabsList className="bg-secondary/40 border border-border/50">
           <TabsTrigger value="invoices" className="gap-2 text-xs">
             <Receipt className="h-3.5 w-3.5" />
             Client Invoices ({invoices.length})
           </TabsTrigger>
+          <TabsTrigger value="recurring" className="gap-2 text-xs">
+            <Repeat className="h-3.5 w-3.5 text-purple-400" />
+            Recurring Revenue ({recurring.length})
+          </TabsTrigger>
           <TabsTrigger value="expenses" className="gap-2 text-xs">
-            <ArrowDownRight className="h-3.5 w-3.5" />
-            Expenses Log ({transactions.filter((t) => t.type === "expense").length})
+            <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
+            Expenses ({transactions.filter((t) => t.type === "expense").length})
+          </TabsTrigger>
+          <TabsTrigger value="zakat" className="gap-2 text-xs">
+            <Coins className="h-3.5 w-3.5 text-emerald-400" />
+            Zakat Calculator (زكاة المال)
           </TabsTrigger>
         </TabsList>
 
@@ -302,6 +352,83 @@ export default function FinanceOverview() {
           </div>
         </TabsContent>
 
+        {/* Recurring Revenue Tab */}
+        <TabsContent value="recurring" className="pt-2">
+          <div className="space-y-3">
+            {recurring.length === 0 ? (
+              <div className="border border-dashed rounded-lg p-12 text-center text-muted-foreground">
+                <Repeat className="h-10 w-10 mx-auto mb-2 opacity-30 text-purple-400" />
+                <p className="text-sm font-medium">No active recurring revenue</p>
+                <p className="text-xs mt-1 opacity-70">
+                  Track ongoing monthly maintenance, hosting retainers, or subscription contracts.
+                </p>
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden border-border/60">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-muted/40 text-muted-foreground border-b border-border/50 font-semibold uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="p-3">Title / Retainer</th>
+                      <th className="p-3">Client</th>
+                      <th className="p-3">Frequency</th>
+                      <th className="p-3">Amount</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {recurring.map((rec) => (
+                      <tr key={rec.id} className="hover:bg-card/60 transition-colors">
+                        <td className="p-3 font-semibold text-foreground">
+                          {rec.title}
+                          {rec.notes && (
+                            <span className="block text-[10px] text-muted-foreground">
+                              {rec.notes}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 text-muted-foreground">
+                          {rec.clientName || "Direct / Independent"}
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="secondary" className="text-[10px] uppercase">
+                            {rec.frequency}
+                          </Badge>
+                        </td>
+                        <td className="p-3 font-bold text-purple-400">
+                          {formatCurrency(rec.amount, rec.currency)}
+                        </td>
+                        <td className="p-3">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] capitalize ${
+                              rec.status === "active"
+                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {rec.status}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeRecurring(rec.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
         {/* Expenses Tab */}
         <TabsContent value="expenses" className="pt-2">
           <div className="space-y-3">
@@ -362,6 +489,11 @@ export default function FinanceOverview() {
             )}
           </div>
         </TabsContent>
+
+        {/* Zakat Tab */}
+        <TabsContent value="zakat" className="pt-2">
+          <ZakatCalculator />
+        </TabsContent>
       </Tabs>
 
       {/* Invoice Modal */}
@@ -382,6 +514,16 @@ export default function FinanceOverview() {
         onOpenChange={setExpenseFormOpen}
         onSave={async (data) => {
           await saveTransactionData(data);
+        }}
+      />
+
+      {/* Recurring Modal */}
+      <RecurringForm
+        open={recurringFormOpen}
+        onOpenChange={setRecurringFormOpen}
+        clients={clients}
+        onSave={async (data) => {
+          await saveRecurringData(data);
         }}
       />
     </div>

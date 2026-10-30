@@ -1,6 +1,6 @@
 import { getDatabase } from "@/db/client";
 import { generateId, nowUnix, safeJson } from "@/lib/utils";
-import type { Invoice, Transaction } from "@/db/schema";
+import type { Invoice, Transaction, RecurringRevenue } from "@/db/schema";
 import type { InvoiceItem } from "./pdf/invoicePdf";
 
 export interface InvoiceWithDetails extends Invoice {
@@ -11,6 +11,121 @@ export interface InvoiceWithDetails extends Invoice {
   clientCountry?: string;
   projectName?: string;
   parsedItems: InvoiceItem[];
+}
+
+export interface RecurringRevenueWithDetails extends RecurringRevenue {
+  clientName?: string;
+  clientCompany?: string;
+}
+
+// ─── Recurring Revenue (Retainers / Subscriptions) ──────────────────────────
+
+export async function fetchRecurringRevenue(): Promise<RecurringRevenueWithDetails[]> {
+  const db = await getDatabase();
+  // Ensure table exists on early runs
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS recurring_revenue (
+      id TEXT PRIMARY KEY NOT NULL,
+      client_id TEXT REFERENCES clients(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      frequency TEXT NOT NULL DEFAULT 'monthly',
+      currency TEXT NOT NULL DEFAULT 'EUR',
+      amount REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      start_date INTEGER NOT NULL DEFAULT (unixepoch()),
+      next_billing_date INTEGER,
+      notes TEXT,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+      updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+    )`
+  );
+
+  const rows = await db.select<any[]>(
+    `SELECT r.*, c.name as client_name, c.company as client_company
+     FROM recurring_revenue r
+     LEFT JOIN clients c ON r.client_id = c.id
+     ORDER BY r.created_at DESC`
+  );
+
+  return rows.map((r) => ({
+    id: r.id,
+    clientId: r.client_id,
+    title: r.title,
+    frequency: r.frequency,
+    currency: r.currency,
+    amount: r.amount,
+    status: r.status,
+    startDate: r.start_date,
+    nextBillingDate: r.next_billing_date,
+    notes: r.notes,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+    clientName: r.client_name,
+    clientCompany: r.client_company,
+  }));
+}
+
+export interface UpsertRecurringInput {
+  id?: string;
+  clientId?: string | null;
+  title: string;
+  frequency: "monthly" | "yearly" | "quarterly";
+  currency: string;
+  amount: number;
+  status: "active" | "paused" | "cancelled";
+  notes?: string | null;
+}
+
+export async function saveRecurringRevenue(input: UpsertRecurringInput): Promise<string> {
+  const db = await getDatabase();
+  const now = nowUnix();
+
+  if (input.id) {
+    await db.execute(
+      `UPDATE recurring_revenue SET
+        client_id = $1, title = $2, frequency = $3, currency = $4,
+        amount = $5, status = $6, notes = $7, updated_at = $8
+       WHERE id = $9`,
+      [
+        input.clientId || null,
+        input.title,
+        input.frequency,
+        input.currency,
+        input.amount,
+        input.status,
+        input.notes || null,
+        now,
+        input.id,
+      ]
+    );
+    return input.id;
+  } else {
+    const newId = generateId();
+    await db.execute(
+      `INSERT INTO recurring_revenue (
+        id, client_id, title, frequency, currency, amount, status, notes, start_date, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        newId,
+        input.clientId || null,
+        input.title,
+        input.frequency,
+        input.currency,
+        input.amount,
+        input.status,
+        input.notes || null,
+        now,
+        now,
+        now,
+      ]
+    );
+    return newId;
+  }
+}
+
+export async function deleteRecurringRevenue(id: string): Promise<void> {
+  const db = await getDatabase();
+  await db.execute("DELETE FROM recurring_revenue WHERE id = $1", [id]);
 }
 
 // ─── Invoices ────────────────────────────────────────────────────────────────
@@ -109,7 +224,6 @@ export async function saveInvoice(input: UpsertInvoiceInput): Promise<string> {
       ]
     );
 
-    // If marked paid, create or sync an income transaction
     if (input.status === "paid") {
       await recordInvoiceIncome(input.id, input.total, input.currency, `Invoice #${input.number} Payment`);
     }

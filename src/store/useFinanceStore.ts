@@ -7,15 +7,21 @@ import {
   fetchTransactions,
   saveTransaction,
   deleteTransaction,
+  fetchRecurringRevenue,
+  saveRecurringRevenue,
+  deleteRecurringRevenue,
   type InvoiceWithDetails,
+  type RecurringRevenueWithDetails,
   type UpsertInvoiceInput,
   type UpsertTransactionInput,
+  type UpsertRecurringInput,
 } from "@/services/financeService";
 import type { Transaction } from "@/db/schema";
 
 interface FinanceState {
   invoices: InvoiceWithDetails[];
   transactions: Transaction[];
+  recurring: RecurringRevenueWithDetails[];
   isLoading: boolean;
   selectedCurrency: string;
 
@@ -26,23 +32,29 @@ interface FinanceState {
 
   saveTransactionData: (input: UpsertTransactionInput) => Promise<string>;
   removeTransaction: (id: string) => Promise<void>;
+
+  saveRecurringData: (input: UpsertRecurringInput) => Promise<string>;
+  removeRecurring: (id: string) => Promise<void>;
+
   setSelectedCurrency: (curr: string) => void;
 }
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   invoices: [],
   transactions: [],
+  recurring: [],
   isLoading: false,
   selectedCurrency: "EUR",
 
   loadData: async () => {
     set({ isLoading: true });
     try {
-      const [invoices, transactions] = await Promise.all([
+      const [invoices, transactions, recurring] = await Promise.all([
         fetchInvoices(),
         fetchTransactions(),
+        fetchRecurringRevenue(),
       ]);
-      set({ invoices, transactions });
+      set({ invoices, transactions, recurring });
     } catch (err) {
       console.error("[useFinanceStore] Failed to load finance data:", err);
     } finally {
@@ -74,6 +86,17 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   removeTransaction: async (id: string) => {
     await deleteTransaction(id);
+    await get().loadData();
+  },
+
+  saveRecurringData: async (input: UpsertRecurringInput) => {
+    const id = await saveRecurringRevenue(input);
+    await get().loadData();
+    return id;
+  },
+
+  removeRecurring: async (id: string) => {
+    await deleteRecurringRevenue(id);
     await get().loadData();
   },
 

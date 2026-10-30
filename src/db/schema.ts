@@ -165,6 +165,25 @@ export const invoices = sqliteTable("invoices", {
   updatedAt: updatedAt(),
 });
 
+// ─── Recurring Revenue (Subscriptions & Retainers) ───────────────────────────
+
+export const recurringRevenue = sqliteTable("recurring_revenue", {
+  id: id(),
+  clientId: text("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  title: text("title").notNull(), // e.g. "Monthly AI Maintenance Retainer"
+  frequency: text("frequency").notNull().default("monthly"), // monthly | yearly | quarterly
+  currency: text("currency").notNull().default("EUR"),
+  amount: real("amount").notNull(),
+  status: text("status").notNull().default("active"), // active | paused | cancelled
+  startDate: integer("start_date").notNull().default(sql`(unixepoch())`),
+  nextBillingDate: integer("next_billing_date"),
+  notes: text("notes"),
+  createdAt: now(),
+  updatedAt: updatedAt(),
+});
+
 // ─── Transactions ────────────────────────────────────────────────────────────
 
 export const transactions = sqliteTable("transactions", {
@@ -195,7 +214,7 @@ export const bookmarks = sqliteTable("bookmarks", {
   description: text("description"),
   faviconUrl: text("favicon_url"),
   ogImage: text("og_image"),
-  category: text("category").notNull().default("info"),
+  category: text("category").notNull().default("info"), // tools | articles | my_projects | info
   tags: text("tags").default("[]"),
   isPinned: integer("is_pinned").notNull().default(0),
   createdAt: now(),
@@ -326,48 +345,21 @@ export const settings = sqliteTable("settings", {
   updatedAt: updatedAt(),
 });
 
-// ─── Types (inferred from schema) ────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-
 export type Client = typeof clients.$inferSelect;
-export type NewClient = typeof clients.$inferInsert;
-
 export type Contact = typeof contacts.$inferSelect;
-export type NewContact = typeof contacts.$inferInsert;
-
 export type Project = typeof projects.$inferSelect;
-export type NewProject = typeof projects.$inferInsert;
-
 export type Task = typeof tasks.$inferSelect;
-export type NewTask = typeof tasks.$inferInsert;
-
 export type Note = typeof notes.$inferSelect;
-export type NewNote = typeof notes.$inferInsert;
-
 export type Invoice = typeof invoices.$inferSelect;
-export type NewInvoice = typeof invoices.$inferInsert;
-
+export type RecurringRevenue = typeof recurringRevenue.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
-export type NewTransaction = typeof transactions.$inferInsert;
-
 export type Bookmark = typeof bookmarks.$inferSelect;
-export type NewBookmark = typeof bookmarks.$inferInsert;
-
 export type Lead = typeof leads.$inferSelect;
-export type NewLead = typeof leads.$inferInsert;
-
 export type OutreachLog = typeof outreachLog.$inferSelect;
-export type NewOutreachLog = typeof outreachLog.$inferInsert;
-
 export type CalendarEvent = typeof calendarEvents.$inferSelect;
-export type NewCalendarEvent = typeof calendarEvents.$inferInsert;
-
 export type AuditSession = typeof auditSessions.$inferSelect;
-export type NewAuditSession = typeof auditSessions.$inferInsert;
-
 export type ApiKey = typeof apiKeys.$inferSelect;
-export type NewApiKey = typeof apiKeys.$inferInsert;
-
 export type Setting = typeof settings.$inferSelect;
