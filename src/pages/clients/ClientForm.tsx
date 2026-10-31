@@ -36,10 +36,15 @@ export function ClientForm({
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
   const [status, setStatus] = useState("lead");
-  const [currency, setCurrency] = useState("EUR");
+  const [currency, setCurrency] = useState("DZD");
   const [notes, setNotes] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [extraContacts, setExtraContacts] = useState<
+    { name: string; role: string; email: string; phone: string }[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -54,10 +59,20 @@ export function ClientForm({
       setPhone(initialData.phone || "");
       setWebsite(initialData.website || "");
       setLinkedin(initialData.linkedin || "");
+      setInstagram(initialData.instagram || "");
+      setFacebook(initialData.facebook || "");
       setStatus(initialData.status || "lead");
-      setCurrency(initialData.currency || "EUR");
+      setCurrency(initialData.currency || "DZD");
       setNotes(initialData.notes || "");
       setSelectedServices(initialData.parsedTags || []);
+      setExtraContacts(
+        (initialData.contacts || []).map((c) => ({
+          name: c.name || "",
+          role: c.role || "",
+          email: c.email || "",
+          phone: c.phone || "",
+        }))
+      );
     } else {
       setName("");
       setCompany("");
@@ -69,10 +84,13 @@ export function ClientForm({
       setPhone("");
       setWebsite("");
       setLinkedin("");
+      setInstagram("");
+      setFacebook("");
       setStatus("lead");
-      setCurrency("EUR");
+      setCurrency("DZD");
       setNotes("");
       setSelectedServices([]);
+      setExtraContacts([]);
     }
   }, [initialData, open]);
 
@@ -100,10 +118,13 @@ export function ClientForm({
         phone: phone.trim() || undefined,
         website: website.trim() || undefined,
         linkedin: linkedin.trim() || undefined,
+        instagram: instagram.trim() || undefined,
+        facebook: facebook.trim() || undefined,
         status,
         currency,
         notes: notes.trim() || undefined,
         serviceTags: selectedServices,
+        contactsList: extraContacts.filter((c) => c.name.trim().length > 0),
       });
       onOpenChange(false);
     } catch (err) {
@@ -226,6 +247,114 @@ export function ClientForm({
                 onChange={(e) => setLinkedin(e.target.value)}
               />
             </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Instagram
+              </label>
+              <Input
+                placeholder="https://instagram.com/..."
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Facebook
+              </label>
+              <Input
+                placeholder="https://facebook.com/..."
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Multiple Contacts / Team Members Section */}
+          <div className="space-y-2 pt-2 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <span>Multiple Contact Persons / Decision Makers ({extraContacts.length})</span>
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs px-2"
+                onClick={() =>
+                  setExtraContacts((prev) => [
+                    ...prev,
+                    { name: "", role: "", email: "", phone: "" },
+                  ])
+                }
+              >
+                + Add Contact Person
+              </Button>
+            </div>
+
+            {extraContacts.length > 0 && (
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {extraContacts.map((c, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-lg bg-secondary/30 border border-border/50 grid grid-cols-1 sm:grid-cols-4 gap-2 relative"
+                  >
+                    <Input
+                      placeholder="Full Name *"
+                      value={c.name}
+                      onChange={(e) => {
+                        const copy = [...extraContacts];
+                        copy[idx].name = e.target.value;
+                        setExtraContacts(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <Input
+                      placeholder="Role / Title (e.g. CTO)"
+                      value={c.role}
+                      onChange={(e) => {
+                        const copy = [...extraContacts];
+                        copy[idx].role = e.target.value;
+                        setExtraContacts(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <Input
+                      placeholder="Email"
+                      value={c.email}
+                      onChange={(e) => {
+                        const copy = [...extraContacts];
+                        copy[idx].email = e.target.value;
+                        setExtraContacts(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        placeholder="Phone / WhatsApp"
+                        value={c.phone}
+                        onChange={(e) => {
+                          const copy = [...extraContacts];
+                          copy[idx].phone = e.target.value;
+                          setExtraContacts(copy);
+                        }}
+                        className="h-7 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExtraContacts((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                        className="text-muted-foreground hover:text-destructive px-1.5 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Business & Location */}

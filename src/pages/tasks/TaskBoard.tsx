@@ -11,7 +11,9 @@ import {
   ArrowRight,
   Filter,
   CheckCircle2,
+  Clock,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -259,7 +261,7 @@ export default function TaskBoard() {
                           </p>
 
                           {/* Context: Project & Client */}
-                          {(task.projectName || task.clientName) && (
+                          {(task.projectName || task.clientName || task.dueDate) && (
                             <div className="space-y-0.5 pt-1 text-[10px] text-muted-foreground">
                               {task.projectName && (
                                 <div className="flex items-center gap-1 truncate text-primary/80">
@@ -271,6 +273,12 @@ export default function TaskBoard() {
                                 <div className="flex items-center gap-1 truncate">
                                   <Building2 className="h-2.5 w-2.5 shrink-0" />
                                   <span className="truncate">{task.clientName}</span>
+                                </div>
+                              )}
+                              {task.dueDate && task.dueDate > 0 && (
+                                <div className="flex items-center gap-1 text-amber-400/90 font-mono text-[9px] pt-0.5">
+                                  <Clock className="h-2.5 w-2.5 shrink-0" />
+                                  <span>{formatDate(task.dueDate, "dd/MM/yyyy HH:mm")}</span>
                                 </div>
                               )}
                             </div>

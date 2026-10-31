@@ -21,6 +21,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { SERVICES_CATALOG, CLIENT_STATUSES } from "@/lib/servicesCatalog";
 import { formatDate } from "@/lib/utils";
+import {
+  EmailActionMenu,
+  PhoneActionMenu,
+  SocialLinksRow,
+} from "@/components/common/ContactActionMenu";
 import type { ClientWithDetails } from "@/services/clientService";
 
 interface ClientDetailProps {
@@ -148,50 +153,16 @@ export function ClientDetail({
             </div>
           </div>
 
-          {/* Quick Communication bar */}
+          {/* Quick Communication & Social Links Bar */}
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/40 flex-wrap">
-            {client.email && (
-              <a
-                href={`mailto:${client.email}`}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-md bg-secondary/60 hover:bg-secondary transition-colors"
-              >
-                <Mail className="h-3.5 w-3.5 text-blue-400" />
-                {client.email}
-              </a>
-            )}
-            {client.phone && (
-              <a
-                href={`tel:${client.phone}`}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-md bg-secondary/60 hover:bg-secondary transition-colors"
-              >
-                <Phone className="h-3.5 w-3.5 text-emerald-400" />
-                {client.phone}
-              </a>
-            )}
-            {client.website && (
-              <a
-                href={client.website.startsWith("http") ? client.website : `https://${client.website}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-md bg-secondary/60 hover:bg-secondary transition-colors"
-              >
-                <Globe className="h-3.5 w-3.5 text-cyan-400" />
-                Website
-                <ExternalLink className="h-2.5 w-2.5 opacity-60" />
-              </a>
-            )}
-            {client.linkedin && (
-              <a
-                href={client.linkedin.startsWith("http") ? client.linkedin : `https://${client.linkedin}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-md bg-secondary/60 hover:bg-secondary transition-colors"
-              >
-                <Linkedin className="h-3.5 w-3.5 text-blue-500" />
-                LinkedIn
-                <ExternalLink className="h-2.5 w-2.5 opacity-60" />
-              </a>
-            )}
+            {client.email && <EmailActionMenu email={client.email} />}
+            {client.phone && <PhoneActionMenu phone={client.phone} />}
+            <SocialLinksRow
+              website={client.website}
+              linkedin={client.linkedin}
+              instagram={client.instagram}
+              facebook={client.facebook}
+            />
           </div>
 
           {/* Services Tagged */}
@@ -374,16 +345,12 @@ export function ClientDetail({
                       {contact.role && (
                         <p className="text-xs text-muted-foreground">{contact.role}</p>
                       )}
-                      <div className="flex flex-col gap-0.5 pt-1 text-xs text-muted-foreground">
+                      <div className="flex flex-col gap-1 pt-1 text-xs">
                         {contact.email && (
-                          <a href={`mailto:${contact.email}`} className="hover:text-foreground">
-                            ✉️ {contact.email}
-                          </a>
+                          <EmailActionMenu email={contact.email} variant="text" />
                         )}
                         {contact.phone && (
-                          <a href={`tel:${contact.phone}`} className="hover:text-foreground">
-                            📞 {contact.phone}
-                          </a>
+                          <PhoneActionMenu phone={contact.phone} variant="text" />
                         )}
                       </div>
                     </div>

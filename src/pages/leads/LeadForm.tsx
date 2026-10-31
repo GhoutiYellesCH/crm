@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { UpsertLeadInput } from "@/services/lead/leadService";
+import type { UpsertLeadInput, DecisionMakerItem } from "@/services/lead/leadService";
 
 interface LeadFormProps {
   open: boolean;
@@ -21,12 +21,25 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
   const [website, setWebsite] = useState("");
   const [industry, setIndustry] = useState("");
   const [companySize, setCompanySize] = useState("1-10");
+  const [linkedin, setLinkedin] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [decisionMaker, setDecisionMaker] = useState("");
   const [decisionMakerRole, setDecisionMakerRole] = useState("");
   const [notes, setNotes] = useState("");
+  const [decisionMakers, setDecisionMakers] = useState<DecisionMakerItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddDecisionMaker = () => {
+    setDecisionMakers((prev) => [
+      ...prev,
+      { name: "", role: "", email: "", phone: "" },
+    ]);
+  };
+
+  const handleRemoveDecisionMaker = (index: number) => {
+    setDecisionMakers((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,24 +47,50 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
 
     setIsSubmitting(true);
     try {
+      const allDms: DecisionMakerItem[] = [];
+      if (decisionMaker.trim()) {
+        allDms.push({
+          name: decisionMaker.trim(),
+          role: decisionMakerRole.trim() || undefined,
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
+        });
+      }
+      for (const dm of decisionMakers) {
+        if (dm.name.trim()) {
+          allDms.push({
+            name: dm.name.trim(),
+            role: dm.role?.trim() || undefined,
+            email: dm.email?.trim() || undefined,
+            phone: dm.phone?.trim() || undefined,
+          });
+        }
+      }
+
       await onSave({
         companyName: companyName.trim(),
         website: website.trim() || undefined,
         industry: industry.trim() || undefined,
         companySize,
-        email: email.trim() || undefined,
-        phone: phone.trim() || undefined,
-        decisionMaker: decisionMaker.trim() || undefined,
-        decisionMakerRole: decisionMakerRole.trim() || undefined,
+        linkedin: linkedin.trim() || undefined,
+        email: email.trim() || allDms[0]?.email || undefined,
+        phone: phone.trim() || allDms[0]?.phone || undefined,
+        decisionMaker: decisionMaker.trim() || allDms[0]?.name || undefined,
+        decisionMakerRole: decisionMakerRole.trim() || allDms[0]?.role || undefined,
+        decisionMakersList: allDms,
         notes: notes.trim() || undefined,
         source: "Manual Entry",
         stage: "discovered",
       });
       setCompanyName("");
       setWebsite("");
+      setIndustry("");
+      setLinkedin("");
       setEmail("");
       setPhone("");
       setDecisionMaker("");
+      setDecisionMakerRole("");
+      setDecisionMakers([]);
       setNotes("");
       onOpenChange(false);
     } finally {
@@ -61,7 +100,7 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Potential Lead</DialogTitle>
         </DialogHeader>
@@ -79,13 +118,23 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="font-semibold text-muted-foreground">Website</label>
-            <Input
-              placeholder="https://company.com"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">Website</label>
+              <Input
+                placeholder="https://company.com"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">Company LinkedIn</label>
+              <Input
+                placeholder="https://linkedin.com/company/..."
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -114,51 +163,137 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">Email</label>
-              <Input
-                type="email"
-                placeholder="contact@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+          {/* Primary Decision Maker */}
+          <div className="p-2.5 rounded-lg bg-secondary/20 border border-border/50 space-y-2">
+            <span className="font-semibold text-foreground block">
+              Primary Decision Maker Contact
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] text-muted-foreground">Contact Name</label>
+                <Input
+                  placeholder="e.g. Alex Vance"
+                  value={decisionMaker}
+                  onChange={(e) => setDecisionMaker(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-muted-foreground">Role / Title</label>
+                <Input
+                  placeholder="e.g. CTO, CEO, VP Tech"
+                  value={decisionMakerRole}
+                  onChange={(e) => setDecisionMakerRole(e.target.value)}
+                  className="h-8"
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">Phone</label>
-              <Input
-                placeholder="+213..."
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] text-muted-foreground">Email</label>
+                <Input
+                  type="email"
+                  placeholder="alex@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-muted-foreground">Phone / WhatsApp</label>
+                <Input
+                  placeholder="+213... or +1..."
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="h-8"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">
-                Decision Maker Name
-              </label>
-              <Input
-                placeholder="Founder / CTO name"
-                value={decisionMaker}
-                onChange={(e) => setDecisionMaker(e.target.value)}
-              />
+          {/* Multiple Decision Makers Section */}
+          <div className="space-y-2 pt-1 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-muted-foreground">
+                Additional Decision Makers / Roles ({decisionMakers.length})
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs px-2"
+                onClick={handleAddDecisionMaker}
+              >
+                + Add Decision Maker
+              </Button>
             </div>
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">Role</label>
-              <Input
-                placeholder="CEO, Head of Tech..."
-                value={decisionMakerRole}
-                onChange={(e) => setDecisionMakerRole(e.target.value)}
-              />
-            </div>
+
+            {decisionMakers.length > 0 && (
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {decisionMakers.map((dm, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-lg bg-secondary/30 border border-border/50 grid grid-cols-1 sm:grid-cols-4 gap-2 relative"
+                  >
+                    <Input
+                      placeholder="Name *"
+                      value={dm.name}
+                      onChange={(e) => {
+                        const copy = [...decisionMakers];
+                        copy[idx].name = e.target.value;
+                        setDecisionMakers(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <Input
+                      placeholder="Role (e.g. COO)"
+                      value={dm.role || ""}
+                      onChange={(e) => {
+                        const copy = [...decisionMakers];
+                        copy[idx].role = e.target.value;
+                        setDecisionMakers(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <Input
+                      placeholder="Email"
+                      value={dm.email || ""}
+                      onChange={(e) => {
+                        const copy = [...decisionMakers];
+                        copy[idx].email = e.target.value;
+                        setDecisionMakers(copy);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        placeholder="Phone"
+                        value={dm.phone || ""}
+                        onChange={(e) => {
+                          const copy = [...decisionMakers];
+                          copy[idx].phone = e.target.value;
+                          setDecisionMakers(copy);
+                        }}
+                        className="h-7 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDecisionMaker(idx)}
+                        className="text-muted-foreground hover:text-destructive px-1.5 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-1">
             <label className="font-semibold text-muted-foreground">Notes</label>
             <Input
-              placeholder="Initial observations or leads source..."
+              placeholder="Pain points, observations, source..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -173,7 +308,7 @@ export function LeadForm({ open, onOpenChange, onSave }: LeadFormProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Lead"}
+              {isSubmitting ? "Saving..." : "Add Lead"}
             </Button>
           </DialogFooter>
         </form>

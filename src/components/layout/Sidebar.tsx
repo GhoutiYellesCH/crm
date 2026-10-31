@@ -12,6 +12,8 @@ import {
   Calendar,
   Shield,
   Settings,
+  Activity,
+  Flame,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -40,6 +42,7 @@ const NAV_GROUPS = [
     items: [
       { to: "/tasks", icon: CheckSquare, key: "tasks" },
       { to: "/projects", icon: FolderKanban, key: "projects" },
+      { to: "/activity", icon: Activity, key: "activity" },
       { to: "/calendar", icon: Calendar, key: "calendar" },
     ],
   },

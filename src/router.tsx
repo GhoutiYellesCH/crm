@@ -9,6 +9,7 @@ import BookmarkHub from "./pages/bookmarks/BookmarkHub";
 import LeadFunnel from "./pages/leads/LeadFunnel";
 import CalendarView from "./pages/calendar/CalendarView";
 import AuditList from "./pages/audit/AuditList";
+import ActivityHeatmap from "./pages/activity/ActivityHeatmap";
 import Settings from "./pages/settings/Settings";
 
 export const router = createBrowserRouter([
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "clients", element: <ClientList /> },
       { path: "tasks", element: <TaskBoard /> },
       { path: "projects", element: <ProjectList /> },
+      { path: "activity", element: <ActivityHeatmap /> },
       { path: "finance", element: <FinanceOverview /> },
       { path: "bookmarks", element: <BookmarkHub /> },
       { path: "leads", element: <LeadFunnel /> },

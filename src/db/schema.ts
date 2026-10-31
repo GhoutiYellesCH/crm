@@ -45,6 +45,9 @@ export const clients = sqliteTable("clients", {
   phone: text("phone"),
   website: text("website"),
   linkedin: text("linkedin"),
+  instagram: text("instagram"),
+  facebook: text("facebook"),
+  additionalContacts: text("additional_contacts").default("[]"),
   status: text("status").notNull().default("lead"),
   leadScore: real("lead_score").default(0),
   serviceTags: text("service_tags").default("[]"),
@@ -84,6 +87,9 @@ export const projects = sqliteTable("projects", {
   status: text("status").notNull().default("active"),
   serviceType: text("service_type").notNull(),
   checklist: text("checklist").default("[]"), // JSON: [{id, text, done}]
+  price: real("price").default(0),
+  expenses: real("expenses").default(0),
+  currency: text("currency").default("EUR"),
   startDate: integer("start_date"),
   dueDate: integer("due_date"),
   completedAt: integer("completed_at"),
@@ -236,6 +242,9 @@ export const leads = sqliteTable("leads", {
   linkedin: text("linkedin"),
   decisionMaker: text("decision_maker"),
   decisionMakerRole: text("decision_maker_role"),
+  decisionMakers: text("decision_makers").default("[]"), // JSON: [{name, role, email, phone}]
+  additionalPhones: text("additional_phones").default("[]"), // JSON: string[]
+  additionalEmails: text("additional_emails").default("[]"), // JSON: string[]
   techStack: text("tech_stack").default("[]"),
   securityIssues: text("security_issues").default("[]"),
   whoisData: text("whois_data").default("{}"),
@@ -345,6 +354,18 @@ export const settings = sqliteTable("settings", {
   updatedAt: updatedAt(),
 });
 
+// ─── Activity Logs ────────────────────────────────────────────────────────────
+
+export const activityLogs = sqliteTable("activity_logs", {
+  id: id(),
+  entityType: text("entity_type").notNull(), // task | project | client | lead | invoice
+  entityId: text("entity_id"),
+  action: text("action").notNull(), // completed | created | updated | contacted
+  title: text("title").notNull(),
+  metadata: text("metadata").default("{}"),
+  createdAt: now(),
+});
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect;
@@ -363,3 +384,4 @@ export type CalendarEvent = typeof calendarEvents.$inferSelect;
 export type AuditSession = typeof auditSessions.$inferSelect;
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
+export type ActivityLog = typeof activityLogs.$inferSelect;

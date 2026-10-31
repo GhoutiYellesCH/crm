@@ -15,6 +15,8 @@ import {
 } from "@/lib/projectTemplates";
 import { SERVICES_CATALOG } from "@/lib/servicesCatalog";
 import { generateId } from "@/lib/utils";
+import { SUPPORTED_CURRENCIES } from "@/lib/currencies";
+import { useUIStore } from "@/store/useUIStore";
 import type { ProjectWithDetails, UpsertProjectInput } from "@/services/taskService";
 import type { ClientWithDetails } from "@/services/clientService";
 
@@ -33,11 +35,15 @@ export function ProjectForm({
   initialData,
   onSave,
 }: ProjectFormProps) {
+  const { mainCurrency } = useUIStore();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [clientId, setClientId] = useState<string>("");
   const [serviceType, setServiceType] = useState<string>("ai_automation");
   const [status, setStatus] = useState<string>("active");
+  const [price, setPrice] = useState<number>(0);
+  const [expenses, setExpenses] = useState<number>(0);
+  const [currency, setCurrency] = useState<string>(mainCurrency || "DZD");
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [customItemText, setCustomItemText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +55,9 @@ export function ProjectForm({
       setClientId(initialData.clientId || "");
       setServiceType(initialData.serviceType || "ai_automation");
       setStatus(initialData.status || "active");
+      setPrice(initialData.price ?? 0);
+      setExpenses(initialData.expenses ?? 0);
+      setCurrency(initialData.currency || mainCurrency || "DZD");
       setChecklist(initialData.parsedChecklist || []);
     } else {
       setName("");
@@ -56,11 +65,14 @@ export function ProjectForm({
       setClientId("");
       setServiceType("ai_automation");
       setStatus("active");
+      setPrice(0);
+      setExpenses(0);
+      setCurrency(mainCurrency || "DZD");
       // Load default checklist for default service type
       const def = SERVICE_PROJECT_TEMPLATES["ai_automation"]?.defaultChecklist || [];
       setChecklist(def.map((text) => ({ id: generateId(), text, done: false })));
     }
-  }, [initialData, open]);
+  }, [initialData, mainCurrency, open]);
 
   // When changing service type in creation mode, prompt to load corresponding checklist
   const handleServiceTypeChange = (newType: string) => {
@@ -106,6 +118,9 @@ export function ProjectForm({
         clientId: clientId || undefined,
         serviceType,
         status,
+        price,
+        expenses,
+        currency,
         checklist,
       });
       onOpenChange(false);
@@ -172,6 +187,65 @@ export function ProjectForm({
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          {/* Financials: Price, Expenses, Currency & Projected Net Profit */}
+          <div className="p-3 rounded-lg bg-secondary/30 border border-border/60 space-y-2">
+            <span className="text-xs font-semibold text-foreground flex items-center justify-between">
+              <span>Project Financials & Deliverable Budget</span>
+              <span className="text-[11px] text-emerald-400 font-bold">
+                Projected Profit: {price - expenses >= 0 ? "+" : ""}{(price - expenses).toFixed(2)} {currency}
+              </span>
+            </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Project Total Price *
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="e.g. 1500"
+                  value={price || ""}
+                  onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                  className="h-8 text-xs font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Estimated Expenses
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="e.g. 300 (tools, team, ads)"
+                  value={expenses || ""}
+                  onChange={(e) => setExpenses(parseFloat(e.target.value) || 0)}
+                  className="h-8 text-xs font-semibold text-rose-400"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Currency
+                </label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs font-semibold shadow-sm"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

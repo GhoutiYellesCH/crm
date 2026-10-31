@@ -20,6 +20,8 @@ import { useClientStore } from "@/store/useClientStore";
 import { ProjectForm } from "./ProjectForm";
 import { SERVICES_CATALOG } from "@/lib/servicesCatalog";
 import { formatDate } from "@/lib/utils";
+import { formatMoney } from "@/lib/currencies";
+import { DollarSign } from "lucide-react";
 
 export default function ProjectList() {
   const { t } = useTranslation();
@@ -150,13 +152,20 @@ export default function ProjectList() {
                     </p>
                   )}
 
-                  {/* Progress Bar */}
+                  {/* Progress Bar & Status */}
                   <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
+                    <div className="flex justify-between items-center text-[11px] font-medium text-muted-foreground">
                       <span>Checklist Progress</span>
-                      <span>
-                        {completedItems} / {totalItems} ({progressPct}%)
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {progressPct === 100 && (
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                            Done
+                          </span>
+                        )}
+                        <span>
+                          {completedItems} / {totalItems} ({progressPct}%)
+                        </span>
+                      </div>
                     </div>
                     <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                       <div
@@ -167,6 +176,41 @@ export default function ProjectList() {
                       />
                     </div>
                   </div>
+
+                  {/* Financials: Price, Expenses, Profit */}
+                  {((proj.price || 0) > 0 || (proj.expenses || 0) > 0) && (
+                    <div className="flex items-center justify-between text-[11px] p-2 rounded bg-secondary/25 border border-border/40">
+                      <div>
+                        <span className="text-[10px] text-muted-foreground block">Price</span>
+                        <span className="font-semibold text-foreground">
+                          {formatMoney(proj.price || 0, proj.currency || "DZD")}
+                        </span>
+                      </div>
+                      {(proj.expenses || 0) > 0 && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block">Expenses</span>
+                          <span className="font-medium text-rose-400">
+                            {formatMoney(proj.expenses || 0, proj.currency || "DZD")}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-[10px] text-muted-foreground block">Net Profit</span>
+                        <span
+                          className={`font-bold ${
+                            (proj.price || 0) - (proj.expenses || 0) >= 0
+                              ? "text-emerald-400"
+                              : "text-rose-400"
+                          }`}
+                        >
+                          {formatMoney(
+                            (proj.price || 0) - (proj.expenses || 0),
+                            proj.currency || "DZD"
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Checklist Items Preview */}
                   <div className="space-y-1.5 pt-1 border-t border-border/40 max-h-40 overflow-y-auto pr-1">
@@ -192,9 +236,15 @@ export default function ProjectList() {
 
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-2 border-t border-border/30">
                     <span>Started {formatDate(proj.createdAt)}</span>
-                    <Badge variant="outline" className="text-[10px] capitalize">
-                      {proj.status}
-                    </Badge>
+                    {progressPct === 100 ? (
+                      <Badge className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold px-2 py-0.5">
+                        ✓ Done
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] capitalize">
+                        {proj.status}
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -11,6 +11,10 @@ import {
   Trash2,
   CalendarCheck,
   Bell,
+  CheckSquare,
+  CheckCircle2,
+  Circle,
+  FolderKanban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,7 +41,7 @@ export default function CalendarView() {
   } = useCalendarStore();
 
   const { clients, loadClients } = useClientStore();
-  const { tasks, loadData: loadTasks } = useTaskProjectStore();
+  const { tasks, loadData: loadTasks, changeTaskStatus } = useTaskProjectStore();
   const { leads, loadLeads } = useLeadStore();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -89,6 +93,17 @@ export default function CalendarView() {
   // Selected date events
   const selectedDateEvents = filteredEvents.filter((e) => {
     const d = new Date(e.startAt * 1000);
+    return (
+      d.getDate() === selectedDate.getDate() &&
+      d.getMonth() === selectedDate.getMonth() &&
+      d.getFullYear() === selectedDate.getFullYear()
+    );
+  });
+
+  // Selected date scheduled tasks
+  const selectedDateTasks = tasks.filter((t) => {
+    if (!t.dueDate || t.dueDate <= 0) return false;
+    const d = new Date(t.dueDate * 1000);
     return (
       d.getDate() === selectedDate.getDate() &&
       d.getMonth() === selectedDate.getMonth() &&
@@ -213,11 +228,24 @@ export default function CalendarView() {
                     );
                   });
 
+                  // Find tasks on this day
+                  const dayTasks = tasks.filter((t) => {
+                    if (!t.dueDate || t.dueDate <= 0) return false;
+                    const d = new Date(t.dueDate * 1000);
+                    return (
+                      d.getDate() === dayNum &&
+                      d.getMonth() === viewMonth &&
+                      d.getFullYear() === viewYear
+                    );
+                  });
+
+                  const totalItemsOnDay = dayEvents.length + dayTasks.length;
+
                   return (
                     <div
                       key={dayNum}
                       onClick={() => setSelectedDate(dayDate)}
-                      className={`h-20 p-1.5 rounded-lg border text-xs cursor-pointer transition-all flex flex-col justify-between ${
+                      className={`min-h-[85px] p-1.5 rounded-lg border text-xs cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected
                           ? "border-primary bg-primary/10 shadow-xs"
                           : isToday
@@ -233,16 +261,36 @@ export default function CalendarView() {
                         >
                           {dayNum}
                         </span>
-                        {dayEvents.length > 0 && (
+                        {totalItemsOnDay > 0 && (
                           <span className="text-[9px] px-1 rounded-full bg-secondary text-secondary-foreground font-mono">
-                            {dayEvents.length}
+                            {totalItemsOnDay}
                           </span>
                         )}
                       </div>
 
-                      {/* Event dots/previews */}
+                      {/* Event & Task previews */}
                       <div className="space-y-0.5 overflow-hidden">
-                        {dayEvents.slice(0, 2).map((ev) => {
+                        {dayTasks.slice(0, 2).map((t) => {
+                          const timeStr = new Date(t.dueDate! * 1000).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          });
+                          return (
+                            <div
+                              key={`t-${t.id}`}
+                              className={`text-[9px] truncate px-1 py-0.2 rounded border flex items-center gap-1 ${
+                                t.status === "done"
+                                  ? "bg-secondary/40 text-muted-foreground line-through border-border/40"
+                                  : "bg-blue-500/15 border-blue-500/30 text-blue-300 font-medium"
+                              }`}
+                            >
+                              <span className="font-mono text-[8px] opacity-80">{timeStr}</span>
+                              <span className="truncate">{t.title}</span>
+                            </div>
+                          );
+                        })}
+
+                        {dayEvents.slice(0, Math.max(1, 2 - dayTasks.length)).map((ev) => {
                           const typeObj =
                             EVENT_TYPES.find((t) => t.value === ev.type) || EVENT_TYPES[0];
                           return (
@@ -254,9 +302,10 @@ export default function CalendarView() {
                             </div>
                           );
                         })}
-                        {dayEvents.length > 2 && (
+
+                        {totalItemsOnDay > 2 && (
                           <span className="text-[8px] text-muted-foreground pl-0.5">
-                            +{dayEvents.length - 2} more
+                            +{totalItemsOnDay - 2} more
                           </span>
                         )}
                       </div>
@@ -282,7 +331,7 @@ export default function CalendarView() {
                     })}
                   </h3>
                   <span className="text-[10px] text-muted-foreground">
-                    {selectedDateEvents.length} scheduled event(s)
+                    {selectedDateEvents.length + selectedDateTasks.length} scheduled item(s)
                   </span>
                 </div>
 
@@ -296,16 +345,88 @@ export default function CalendarView() {
                   }}
                 >
                   <Plus className="h-3 w-3" />
-                  Add
+                  Add Event
                 </Button>
               </div>
 
-              {/* Agenda List */}
+              {/* Agenda List: Scheduled Tasks & Events */}
               <div className="space-y-2 max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
-                {selectedDateEvents.length === 0 ? (
+                {/* Section: Scheduled Tasks for this day */}
+                {selectedDateTasks.length > 0 && (
+                  <div className="space-y-1.5 pb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary flex items-center gap-1">
+                      <CheckSquare className="h-3 w-3" /> Scheduled Tasks ({selectedDateTasks.length})
+                    </span>
+                    {selectedDateTasks.map((task) => {
+                      const timeStr = new Date(task.dueDate! * 1000).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                      const isDone = task.status === "done";
+
+                      return (
+                        <div
+                          key={`task-${task.id}`}
+                          className={`p-2.5 rounded-lg border transition-all text-xs space-y-1 ${
+                            isDone
+                              ? "bg-secondary/20 border-border/40 opacity-70"
+                              : "bg-blue-500/10 border-blue-500/30"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  changeTaskStatus(
+                                    task.id,
+                                    isDone ? "todo" : "done"
+                                  )
+                                }
+                                className="text-primary hover:text-emerald-400 mt-0.5"
+                              >
+                                {isDone ? (
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                ) : (
+                                  <Circle className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </button>
+                              <span
+                                className={`font-semibold truncate ${
+                                  isDone ? "line-through text-muted-foreground" : "text-foreground"
+                                }`}
+                              >
+                                {task.title}
+                              </span>
+                            </div>
+
+                            <Badge variant="outline" className="text-[9px] capitalize shrink-0">
+                              {task.priority}
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 pl-6">
+                            <span className="flex items-center gap-1 text-amber-400/90 font-mono">
+                              <Clock className="h-3 w-3" />
+                              {timeStr}
+                            </span>
+                            {task.projectName && (
+                              <span className="truncate max-w-[140px] text-primary/80">
+                                📁 {task.projectName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Section: Calendar Events */}
+                {selectedDateEvents.length === 0 && selectedDateTasks.length === 0 ? (
                   <div className="text-center py-10 text-muted-foreground">
                     <CalendarCheck className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-xs">No events scheduled for this day.</p>
+                    <p className="text-xs">No tasks or events scheduled for this day.</p>
                   </div>
                 ) : (
                   selectedDateEvents.map((ev) => {

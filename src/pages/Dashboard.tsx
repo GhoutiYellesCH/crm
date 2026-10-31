@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -14,6 +14,8 @@ import {
   Coins,
   ArrowRight,
   Sparkles,
+  Calculator,
+  Flame,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,15 +25,23 @@ import { useTaskProjectStore } from "@/store/useTaskProjectStore";
 import { useFinanceStore } from "@/store/useFinanceStore";
 import { useLeadStore } from "@/store/useLeadStore";
 import { useAuditStore } from "@/store/useAuditStore";
+import { useUIStore } from "@/store/useUIStore";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { convertCurrency, formatMoney } from "@/lib/currencies";
+import { CurrencyCalculatorModal } from "@/components/finance/CurrencyCalculatorModal";
+import { fetchAllActivities, computeHeatmapAndStreaks } from "@/services/activityService";
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { mainCurrency } = useUIStore();
   const { clients, loadClients } = useClientStore();
   const { tasks, projects, loadData: loadTaskData } = useTaskProjectStore();
   const { invoices, recurring, loadData: loadFinanceData } = useFinanceStore();
   const { leads, loadLeads } = useLeadStore();
   const { sessions: audits, loadSessions: loadAuditData } = useAuditStore();
+
+  const [calcOpen, setCalcOpen] = useState(false);
+  const [streakDays, setStreakDays] = useState(0);
 
   useEffect(() => {
     loadClients();
@@ -39,6 +49,12 @@ export default function Dashboard() {
     loadFinanceData();
     loadLeads();
     loadAuditData();
+    fetchAllActivities()
+      .then((acts) => {
+        const { streakStats } = computeHeatmapAndStreaks(acts, 30);
+        setStreakDays(streakStats.currentStreak);
+      })
+      .catch(() => {});
   }, [loadClients, loadTaskData, loadFinanceData, loadLeads, loadAuditData]);
 
   // Aggregate stats
@@ -48,11 +64,19 @@ export default function Dashboard() {
 
   const totalCollected = invoices
     .filter((i) => i.status === "paid")
-    .reduce((sum, i) => sum + i.total, 0);
+    .reduce((sum, i) => {
+      const invCurr = i.currency || "EUR";
+      const { result } = convertCurrency(i.total, invCurr, mainCurrency, "black_market");
+      return sum + result;
+    }, 0);
 
   const mrrTotal = recurring
     .filter((r) => r.status === "active")
-    .reduce((sum, r) => sum + r.amount, 0);
+    .reduce((sum, r) => {
+      const recCurr = r.currency || "EUR";
+      const { result } = convertCurrency(r.amount, recCurr, mainCurrency, "black_market");
+      return sum + result;
+    }, 0);
 
   const qualifiedLeads = leads.filter(
     (l) => l.stage === "qualified" || l.stage === "shortlisted"
@@ -92,8 +116,8 @@ export default function Dashboard() {
     },
     {
       title: "Monthly Retainers (MRR)",
-      value: formatCurrency(mrrTotal, "EUR"),
-      sub: `${recurring.length} active recurring contracts`,
+      value: formatMoney(mrrTotal, mainCurrency),
+      sub: `${recurring.length} active recurring (${mainCurrency})`,
       icon: Repeat,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10",
@@ -133,9 +157,29 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/activity">
+            <Badge
+              variant="outline"
+              className="text-xs bg-orange-500/10 text-orange-400 border-orange-500/30 gap-1.5 cursor-pointer hover:bg-orange-500/20 transition-colors"
+            >
+              <Flame className="h-3.5 w-3.5 fill-orange-400 text-orange-400" />
+              {streakDays} Day Streak 🔥
+            </Badge>
+          </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCalcOpen(true)}
+            className="h-7 text-xs gap-1.5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+          >
+            <Calculator className="h-3.5 w-3.5" />
+            {mainCurrency} Calculator
+          </Button>
+
           <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-            🟢 Local-first Engine Active
+            🟢 Local-first Engine
           </Badge>
         </div>
       </div>
@@ -261,6 +305,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <CurrencyCalculatorModal open={calcOpen} onOpenChange={setCalcOpen} />
     </div>
   );
 }

@@ -1,0 +1,78 @@
+name: Build Windows Executable (.exe)
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows x64 .exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Frontend Assets
+        run: npm run vite:build
+
+      - name: Compile Windows Executable
+        working-directory: ./src-tauri
+        run: cargo build --release --target x86_64-pc-windows-msvc --features tauri/custom-protocol
+
+      - name: Package Executable Artifacts
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          VERSION=$(node -p "require('./package.json').version")
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/personal-crm.exe release-artifacts/AegisFlow_${VERSION}_x64.exe
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/personal-crm.exe release-artifacts/AegisFlow_latest_x64.exe
+          cp src-tauri/target/x86_64-pc-windows-msvc/release/personal-crm.exe release-artifacts/personal-crm.exe
+          ls -lh release-artifacts/
+
+      - name: Upload Windows .exe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AegisFlow-Windows-x64
+          path: release-artifacts/*.exe
+          retention-days: 30
+
+      - name: Publish GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/*.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

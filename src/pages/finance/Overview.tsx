@@ -30,6 +30,10 @@ import { RecurringForm } from "./RecurringForm";
 import { ZakatCalculator } from "./ZakatCalculator";
 import { generateInvoicePdf, downloadPdf } from "@/services/pdf/invoicePdf";
 import { formatCurrency, formatDate, INVOICE_STATUS_COLORS } from "@/lib/utils";
+import { useUIStore } from "@/store/useUIStore";
+import { convertCurrency, formatMoney } from "@/lib/currencies";
+import { CurrencyCalculatorModal } from "@/components/finance/CurrencyCalculatorModal";
+import { Calculator } from "lucide-react";
 
 export default function FinanceOverview() {
   const { t } = useTranslation();
@@ -53,7 +57,10 @@ export default function FinanceOverview() {
   const [invoiceFormOpen, setInvoiceFormOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [recurringFormOpen, setRecurringFormOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
+
+  const { mainCurrency } = useUIStore();
 
   useEffect(() => {
     loadData();
@@ -61,18 +68,30 @@ export default function FinanceOverview() {
     loadProjects();
   }, [loadData, loadClients, loadProjects]);
 
-  // Aggregate Totals
+  // Aggregate Totals converted to user's main base currency (e.g. DZD / DA)
   const totalPaidInvoices = invoices
     .filter((i) => i.status === "paid")
-    .reduce((sum, i) => sum + i.total, 0);
+    .reduce((sum, i) => {
+      const invCurr = i.currency || "EUR";
+      const { result } = convertCurrency(i.total, invCurr, mainCurrency, "black_market");
+      return sum + result;
+    }, 0);
 
   const totalPendingInvoices = invoices
     .filter((i) => i.status === "sent" || i.status === "draft")
-    .reduce((sum, i) => sum + i.total, 0);
+    .reduce((sum, i) => {
+      const invCurr = i.currency || "EUR";
+      const { result } = convertCurrency(i.total, invCurr, mainCurrency, "black_market");
+      return sum + result;
+    }, 0);
 
   const totalExpenses = transactions
     .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => {
+      const txCurr = t.currency || "EUR";
+      const { result } = convertCurrency(t.amount, txCurr, mainCurrency, "black_market");
+      return sum + result;
+    }, 0);
 
   const netBalance = totalPaidInvoices - totalExpenses;
 
@@ -80,10 +99,12 @@ export default function FinanceOverview() {
   const monthlyRecurringRevenue = recurring
     .filter((r) => r.status === "active")
     .reduce((sum, r) => {
-      if (r.frequency === "monthly") return sum + r.amount;
-      if (r.frequency === "quarterly") return sum + r.amount / 3;
-      if (r.frequency === "yearly") return sum + r.amount / 12;
-      return sum;
+      let baseAmount = r.amount;
+      if (r.frequency === "quarterly") baseAmount = r.amount / 3;
+      if (r.frequency === "yearly") baseAmount = r.amount / 12;
+      const recCurr = r.currency || "EUR";
+      const { result } = convertCurrency(baseAmount, recCurr, mainCurrency, "black_market");
+      return sum + result;
     }, 0);
 
   const handleDownloadInvoice = async (inv: any) => {
@@ -122,6 +143,15 @@ export default function FinanceOverview() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs shadow-sm border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+            onClick={() => setCalcOpen(true)}
+          >
+            <Calculator className="h-3.5 w-3.5" />
+            {mainCurrency} Exchange Calculator
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -165,9 +195,9 @@ export default function FinanceOverview() {
               </div>
             </div>
             <p className="text-xl font-bold text-purple-400">
-              {formatCurrency(monthlyRecurringRevenue, "EUR")}/mo
+              {formatMoney(monthlyRecurringRevenue, mainCurrency)}/mo
             </p>
-            <p className="text-[10px] text-muted-foreground">From active retainers</p>
+            <p className="text-[10px] text-muted-foreground">From active retainers ({mainCurrency})</p>
           </CardContent>
         </Card>
 
@@ -180,9 +210,9 @@ export default function FinanceOverview() {
               </div>
             </div>
             <p className="text-xl font-bold text-foreground">
-              {formatCurrency(totalPaidInvoices, "EUR")}
+              {formatMoney(totalPaidInvoices, mainCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground">From paid invoices</p>
+            <p className="text-[10px] text-muted-foreground">From paid invoices ({mainCurrency})</p>
           </CardContent>
         </Card>
 
@@ -195,9 +225,9 @@ export default function FinanceOverview() {
               </div>
             </div>
             <p className="text-xl font-bold text-foreground">
-              {formatCurrency(totalPendingInvoices, "EUR")}
+              {formatMoney(totalPendingInvoices, mainCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground">Drafts & sent</p>
+            <p className="text-[10px] text-muted-foreground">Drafts & sent ({mainCurrency})</p>
           </CardContent>
         </Card>
 
@@ -210,9 +240,9 @@ export default function FinanceOverview() {
               </div>
             </div>
             <p className="text-xl font-bold text-foreground">
-              {formatCurrency(totalExpenses, "EUR")}
+              {formatMoney(totalExpenses, mainCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground">Operational costs</p>
+            <p className="text-[10px] text-muted-foreground">Operational costs ({mainCurrency})</p>
           </CardContent>
         </Card>
 
@@ -225,9 +255,9 @@ export default function FinanceOverview() {
               </div>
             </div>
             <p className={`text-xl font-bold ${netBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-              {formatCurrency(netBalance, "EUR")}
+              {formatMoney(netBalance, mainCurrency)}
             </p>
-            <p className="text-[10px] text-muted-foreground">Revenue minus expenses</p>
+            <p className="text-[10px] text-muted-foreground">Revenue minus expenses ({mainCurrency})</p>
           </CardContent>
         </Card>
       </div>
@@ -525,6 +555,12 @@ export default function FinanceOverview() {
         onSave={async (data) => {
           await saveRecurringData(data);
         }}
+      />
+
+      {/* Currency Exchange Calculator Modal */}
+      <CurrencyCalculatorModal
+        open={calcOpen}
+        onOpenChange={setCalcOpen}
       />
     </div>
   );

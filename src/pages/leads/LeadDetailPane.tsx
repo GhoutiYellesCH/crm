@@ -22,6 +22,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LEAD_STAGES } from "@/services/lead/leadService";
 import { formatDate } from "@/lib/utils";
+import {
+  EmailActionMenu,
+  PhoneActionMenu,
+  SocialLinksRow,
+} from "@/components/common/ContactActionMenu";
 import type { LeadWithDetails } from "@/services/lead/leadService";
 
 interface LeadDetailPaneProps {
@@ -130,18 +135,56 @@ export function LeadDetailPane({
                 )}
               </div>
 
-              {lead.website && (
-                <a
-                  href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
-                >
-                  <Globe className="h-3 w-3" />
-                  {lead.website}
-                  <ExternalLink className="h-2.5 w-2.5 opacity-60" />
-                </a>
-              )}
+              {/* Website & Social Links */}
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                <SocialLinksRow
+                  website={lead.website}
+                  linkedin={lead.linkedin}
+                />
+              </div>
+
+              {/* Decision Makers List & Contacts */}
+              <div className="pt-2 space-y-1.5">
+                <span className="text-[11px] font-semibold text-muted-foreground block">
+                  Decision Makers & Key Contacts:
+                </span>
+                {lead.parsedDecisionMakers && lead.parsedDecisionMakers.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {lead.parsedDecisionMakers.map((dm, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 rounded-lg bg-secondary/40 border border-border/50 text-xs space-y-1"
+                      >
+                        <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                          <span>👤 {dm.name}</span>
+                          {dm.role && (
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 font-normal">
+                              {dm.role}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 pt-0.5">
+                          {dm.email && <EmailActionMenu email={dm.email} variant="pill" />}
+                          {dm.phone && <PhoneActionMenu phone={dm.phone} variant="pill" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {lead.decisionMaker && (
+                      <div className="p-1.5 px-2 rounded bg-secondary/40 border border-border/50 text-xs flex items-center gap-1.5">
+                        <span className="font-semibold text-foreground">👤 {lead.decisionMaker}</span>
+                        {lead.decisionMakerRole && (
+                          <span className="text-muted-foreground text-[10px]">({lead.decisionMakerRole})</span>
+                        )}
+                      </div>
+                    )}
+                    {lead.email && <EmailActionMenu email={lead.email} variant="pill" />}
+                    {lead.phone && <PhoneActionMenu phone={lead.phone} variant="pill" />}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Score Pill */}

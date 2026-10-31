@@ -5,21 +5,42 @@ import { useUIStore } from "./store/useUIStore";
 import { useSecurityLockStore } from "./store/useSecurityLockStore";
 import { LockScreen } from "./components/security/LockScreen";
 import { initDb } from "./db/client";
+import { hexToHslChannels } from "./lib/colorUtils";
 
 function App() {
-  const { theme, language } = useUIStore();
+  const { theme, customTheme, language } = useUIStore();
   const { initialize, recordActivity, checkAutoLock } = useSecurityLockStore();
 
   // Apply theme class to root
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    if (theme === "light") {
-      root.classList.add("light");
+    root.classList.remove("light", "dark", "tokyo-night", "nord", "cyberpunk", "custom");
+    root.classList.add(theme);
+
+    if (theme === "custom" && customTheme) {
+      root.style.setProperty("--background", hexToHslChannels(customTheme.background));
+      root.style.setProperty("--card", hexToHslChannels(customTheme.card));
+      root.style.setProperty("--popover", hexToHslChannels(customTheme.card));
+      root.style.setProperty("--primary", hexToHslChannels(customTheme.primary));
+      root.style.setProperty("--foreground", hexToHslChannels(customTheme.foreground));
+      root.style.setProperty("--card-foreground", hexToHslChannels(customTheme.foreground));
+      root.style.setProperty("--border", hexToHslChannels(customTheme.border));
+      root.style.setProperty("--input", hexToHslChannels(customTheme.border));
+      root.style.setProperty("--sidebar", hexToHslChannels(customTheme.sidebar));
+      root.style.setProperty("--sidebar-border", hexToHslChannels(customTheme.border));
     } else {
-      root.classList.add("dark");
+      root.style.removeProperty("--background");
+      root.style.removeProperty("--card");
+      root.style.removeProperty("--popover");
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--foreground");
+      root.style.removeProperty("--card-foreground");
+      root.style.removeProperty("--border");
+      root.style.removeProperty("--input");
+      root.style.removeProperty("--sidebar");
+      root.style.removeProperty("--sidebar-border");
     }
-  }, [theme]);
+  }, [theme, customTheme]);
 
   // Apply RTL direction for Arabic
   useEffect(() => {

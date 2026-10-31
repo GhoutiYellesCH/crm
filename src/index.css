@@ -3,7 +3,36 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .dark {
+  /* Default: Tokyo Night */
+  :root, .tokyo-night {
+    --background: 230 25% 12%;
+    --foreground: 226 64% 86%;
+    --card: 231 24% 18%;
+    --card-foreground: 226 64% 86%;
+    --popover: 231 24% 18%;
+    --popover-foreground: 226 64% 86%;
+    --primary: 221 87% 72%;
+    --primary-foreground: 230 25% 12%;
+    --secondary: 229 23% 21%;
+    --secondary-foreground: 226 64% 86%;
+    --muted: 229 23% 21%;
+    --muted-foreground: 229 22% 57%;
+    --accent: 223 45% 44%;
+    --accent-foreground: 226 64% 86%;
+    --destructive: 351 74% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 229 25% 25%;
+    --input: 229 23% 21%;
+    --ring: 221 87% 72%;
+    --radius: 0.5rem;
+    --sidebar: 240 14% 10%;
+    --sidebar-foreground: 226 64% 86%;
+    --sidebar-border: 236 18% 17%;
+    --sidebar-accent: 229 26% 17%;
+    --sidebar-accent-foreground: 221 87% 72%;
+  }
+
+  .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -29,6 +58,62 @@
     --sidebar-border: 217.2 32.6% 14%;
     --sidebar-accent: 217.2 32.6% 10%;
     --sidebar-accent-foreground: 210 40% 98%;
+  }
+
+  .nord {
+    --background: 220 16% 16%;
+    --foreground: 218 27% 92%;
+    --card: 220 16% 22%;
+    --card-foreground: 218 27% 92%;
+    --popover: 220 16% 22%;
+    --popover-foreground: 218 27% 92%;
+    --primary: 193 43% 67%;
+    --primary-foreground: 220 16% 16%;
+    --secondary: 220 16% 28%;
+    --secondary-foreground: 218 27% 92%;
+    --muted: 220 16% 28%;
+    --muted-foreground: 218 14% 65%;
+    --accent: 213 32% 52%;
+    --accent-foreground: 218 27% 92%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 218 27% 92%;
+    --border: 220 16% 28%;
+    --input: 220 16% 28%;
+    --ring: 193 43% 67%;
+    --radius: 0.5rem;
+    --sidebar: 222 16% 13%;
+    --sidebar-foreground: 218 27% 92%;
+    --sidebar-border: 220 16% 22%;
+    --sidebar-accent: 220 16% 20%;
+    --sidebar-accent-foreground: 193 43% 67%;
+  }
+
+  .cyberpunk {
+    --background: 280 60% 8%;
+    --foreground: 180 100% 90%;
+    --card: 280 50% 12%;
+    --card-foreground: 180 100% 90%;
+    --popover: 280 50% 12%;
+    --popover-foreground: 180 100% 90%;
+    --primary: 50 100% 55%;
+    --primary-foreground: 280 60% 8%;
+    --secondary: 280 40% 18%;
+    --secondary-foreground: 180 100% 90%;
+    --muted: 280 40% 18%;
+    --muted-foreground: 180 40% 65%;
+    --accent: 320 100% 60%;
+    --accent-foreground: 280 60% 8%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 180 100% 90%;
+    --border: 280 40% 22%;
+    --input: 280 40% 22%;
+    --ring: 50 100% 55%;
+    --radius: 0.5rem;
+    --sidebar: 280 70% 6%;
+    --sidebar-foreground: 180 100% 90%;
+    --sidebar-border: 280 40% 18%;
+    --sidebar-accent: 280 40% 14%;
+    --sidebar-accent-foreground: 50 100% 55%;
   }
 
   .light {
@@ -104,8 +189,8 @@ select {
 
 /* Dropdown Option Items */
 option, optgroup {
-  background-color: #0b1329 !important;
-  color: #f8fafc !important;
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .light option, .light optgroup {

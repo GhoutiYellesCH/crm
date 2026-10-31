@@ -4,10 +4,18 @@ import type { Lead, OutreachLog } from "@/db/schema";
 import { calculateLeadScore } from "./scoring";
 import { enrichDomainZeroKey } from "./osintService";
 
+export interface DecisionMakerItem {
+  name: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface LeadWithDetails extends Lead {
   parsedTechStack: string[];
   parsedSecurityIssues: Array<{ type: string; severity: string; detail: string }>;
   parsedScoreBreakdown: Record<string, number>;
+  parsedDecisionMakers: DecisionMakerItem[];
   outreachHistory?: OutreachLog[];
 }
 
@@ -23,7 +31,7 @@ export const LEAD_STAGES = [
 
 export async function fetchLeads(): Promise<LeadWithDetails[]> {
   const db = await getDatabase();
-  const rows = await db.select<Lead[]>(
+  const rows = await db.select<any[]>(
     "SELECT * FROM leads ORDER BY lead_score DESC, updated_at DESC"
   );
 
@@ -32,12 +40,13 @@ export async function fetchLeads(): Promise<LeadWithDetails[]> {
     parsedTechStack: safeJson<string[]>(l.techStack, []),
     parsedSecurityIssues: safeJson<any[]>(l.securityIssues, []),
     parsedScoreBreakdown: safeJson<Record<string, number>>(l.scoreBreakdown, {}),
+    parsedDecisionMakers: safeJson<DecisionMakerItem[]>(l.decisionMakers || l.decision_makers, []),
   }));
 }
 
 export async function fetchLeadById(id: string): Promise<LeadWithDetails | null> {
   const db = await getDatabase();
-  const rows = await db.select<Lead[]>(
+  const rows = await db.select<any[]>(
     "SELECT * FROM leads WHERE id = $1 LIMIT 1",
     [id]
   );
@@ -54,6 +63,7 @@ export async function fetchLeadById(id: string): Promise<LeadWithDetails | null>
     parsedTechStack: safeJson<string[]>(l.techStack, []),
     parsedSecurityIssues: safeJson<any[]>(l.securityIssues, []),
     parsedScoreBreakdown: safeJson<Record<string, number>>(l.scoreBreakdown, {}),
+    parsedDecisionMakers: safeJson<DecisionMakerItem[]>(l.decisionMakers || l.decision_makers, []),
     outreachHistory: logs,
   };
 }
@@ -71,6 +81,7 @@ export interface UpsertLeadInput {
   linkedin?: string | null;
   decisionMaker?: string | null;
   decisionMakerRole?: string | null;
+  decisionMakersList?: DecisionMakerItem[];
   techStack?: string[];
   securityIssues?: Array<{ type: string; severity: string; detail: string }>;
   stage?: string;
@@ -97,6 +108,13 @@ export async function saveLead(input: UpsertLeadInput): Promise<string> {
   const techJson = JSON.stringify(input.techStack || []);
   const secJson = JSON.stringify(input.securityIssues || []);
   const breakdownJson = JSON.stringify(scoreResult.breakdown);
+  const decisionMakersJson = JSON.stringify(input.decisionMakersList || []);
+
+  const firstDm = input.decisionMakersList?.[0];
+  const dmName = input.decisionMaker || firstDm?.name || null;
+  const dmRole = input.decisionMakerRole || firstDm?.role || null;
+  const leadEmail = input.email || firstDm?.email || null;
+  const leadPhone = input.phone || firstDm?.phone || null;
 
   if (input.id) {
     await db.execute(
@@ -104,10 +122,10 @@ export async function saveLead(input: UpsertLeadInput): Promise<string> {
         company_name = $1, website = $2, industry = $3, country = $4,
         city = $5, company_size = $6, email = $7, phone = $8,
         linkedin = $9, decision_maker = $10, decision_maker_role = $11,
-        tech_stack = $12, security_issues = $13, lead_score = $14,
-        score_breakdown = $15, stage = $16, source = $17, notes = $18,
-        updated_at = $19
-       WHERE id = $20`,
+        decision_makers = $12, tech_stack = $13, security_issues = $14, lead_score = $15,
+        score_breakdown = $16, stage = $17, source = $18, notes = $19,
+        updated_at = $20
+       WHERE id = $21`,
       [
         input.companyName,
         input.website || null,
@@ -115,11 +133,12 @@ export async function saveLead(input: UpsertLeadInput): Promise<string> {
         input.country || null,
         input.city || null,
         input.companySize || "1-10",
-        input.email || null,
-        input.phone || null,
+        leadEmail,
+        leadPhone,
         input.linkedin || null,
-        input.decisionMaker || null,
-        input.decisionMakerRole || null,
+        dmName,
+        dmRole,
+        decisionMakersJson,
         techJson,
         secJson,
         scoreResult.score,
@@ -138,9 +157,9 @@ export async function saveLead(input: UpsertLeadInput): Promise<string> {
       `INSERT INTO leads (
         id, company_name, website, industry, country, city, company_size,
         email, phone, linkedin, decision_maker, decision_maker_role,
-        tech_stack, security_issues, lead_score, score_breakdown,
+        decision_makers, tech_stack, security_issues, lead_score, score_breakdown,
         stage, source, notes, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
       [
         newId,
         input.companyName,
@@ -149,11 +168,12 @@ export async function saveLead(input: UpsertLeadInput): Promise<string> {
         input.country || null,
         input.city || null,
         input.companySize || "1-10",
-        input.email || null,
-        input.phone || null,
+        leadEmail,
+        leadPhone,
         input.linkedin || null,
-        input.decisionMaker || null,
-        input.decisionMakerRole || null,
+        dmName,
+        dmRole,
+        decisionMakersJson,
         techJson,
         secJson,
         scoreResult.score,

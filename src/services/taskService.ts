@@ -2,12 +2,16 @@ import { getDatabase } from "@/db/client";
 import { generateId, nowUnix, safeJson } from "@/lib/utils";
 import type { Project, Task, User } from "@/db/schema";
 import type { ChecklistItem } from "@/lib/projectTemplates";
+import { logActivity } from "@/services/activityService";
 
 export interface ProjectWithDetails extends Project {
   clientName?: string;
   clientCompany?: string;
   tasks?: Task[];
   parsedChecklist: ChecklistItem[];
+  price: number;
+  expenses: number;
+  currency: string;
 }
 
 export interface TaskWithDetails extends Task {
@@ -36,6 +40,9 @@ export async function fetchProjects(): Promise<ProjectWithDetails[]> {
     status: r.status,
     serviceType: r.service_type,
     checklist: r.checklist,
+    price: Number(r.price || 0),
+    expenses: Number(r.expenses || 0),
+    currency: r.currency || "DZD",
     startDate: r.start_date,
     dueDate: r.due_date,
     completedAt: r.completed_at,
@@ -72,6 +79,9 @@ export async function fetchProjectById(id: string): Promise<ProjectWithDetails |
     status: r.status,
     serviceType: r.service_type,
     checklist: r.checklist,
+    price: Number(r.price || 0),
+    expenses: Number(r.expenses || 0),
+    currency: r.currency || "DZD",
     startDate: r.start_date,
     dueDate: r.due_date,
     completedAt: r.completed_at,
@@ -92,6 +102,9 @@ export interface UpsertProjectInput {
   status: string;
   serviceType: string;
   checklist?: ChecklistItem[];
+  price?: number;
+  expenses?: number;
+  currency?: string;
   startDate?: number | null;
   dueDate?: number | null;
 }
@@ -105,9 +118,9 @@ export async function saveProject(input: UpsertProjectInput): Promise<string> {
     await db.execute(
       `UPDATE projects SET
         client_id = $1, name = $2, description = $3, status = $4,
-        service_type = $5, checklist = $6, start_date = $7, due_date = $8,
-        updated_at = $9
-       WHERE id = $10`,
+        service_type = $5, checklist = $6, price = $7, expenses = $8,
+        currency = $9, start_date = $10, due_date = $11, updated_at = $12
+       WHERE id = $13`,
       [
         input.clientId || null,
         input.name,
@@ -115,6 +128,9 @@ export async function saveProject(input: UpsertProjectInput): Promise<string> {
         input.status,
         input.serviceType,
         checklistJson,
+        input.price ?? 0,
+        input.expenses ?? 0,
+        input.currency || "DZD",
         input.startDate || null,
         input.dueDate || null,
         now,
@@ -127,8 +143,8 @@ export async function saveProject(input: UpsertProjectInput): Promise<string> {
     await db.execute(
       `INSERT INTO projects (
         id, client_id, name, description, status, service_type,
-        checklist, start_date, due_date, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        checklist, price, expenses, currency, start_date, due_date, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         newId,
         input.clientId || null,
@@ -137,12 +153,16 @@ export async function saveProject(input: UpsertProjectInput): Promise<string> {
         input.status,
         input.serviceType,
         checklistJson,
+        input.price ?? 0,
+        input.expenses ?? 0,
+        input.currency || "DZD",
         input.startDate || null,
         input.dueDate || null,
         now,
         now,
       ]
     );
+    await logActivity("project", "created", `Created project: ${input.name}`, newId);
     return newId;
   }
 }
@@ -163,11 +183,29 @@ export async function toggleProjectChecklistItem(
     item.id === itemId ? { ...item, done: !item.done } : item
   );
 
+  const isAllDone =
+    updatedChecklist.length > 0 && updatedChecklist.every((i) => i.done);
+  const newStatus = isAllDone
+    ? "completed"
+    : proj.status === "completed"
+    ? "active"
+    : proj.status;
+  const completedAt = isAllDone ? nowUnix() : null;
+
   const db = await getDatabase();
   await db.execute(
-    "UPDATE projects SET checklist = $1, updated_at = $2 WHERE id = $3",
-    [JSON.stringify(updatedChecklist), nowUnix(), projectId]
+    "UPDATE projects SET checklist = $1, status = $2, completed_at = $3, updated_at = $4 WHERE id = $5",
+    [JSON.stringify(updatedChecklist), newStatus, completedAt, nowUnix(), projectId]
   );
+
+  if (isAllDone) {
+    await logActivity(
+      "project",
+      "completed",
+      `Completed all milestones (100% Done): ${proj.name}`,
+      projectId
+    );
+  }
 }
 
 // ─── Tasks ───────────────────────────────────────────────────────────────────
@@ -246,6 +284,9 @@ export async function saveTask(input: UpsertTaskInput): Promise<string> {
         input.id,
       ]
     );
+    if (input.status === "done") {
+      await logActivity("task", "completed", `Completed task: ${input.title}`, input.id);
+    }
     return input.id;
   } else {
     const newId = generateId();
@@ -271,6 +312,10 @@ export async function saveTask(input: UpsertTaskInput): Promise<string> {
         now,
       ]
     );
+    await logActivity("task", "created", `Created task: ${input.title}`, newId);
+    if (input.status === "done") {
+      await logActivity("task", "completed", `Completed task: ${input.title}`, newId);
+    }
     return newId;
   }
 }
@@ -286,6 +331,9 @@ export async function updateTaskStatus(
     "UPDATE tasks SET status = $1, completed_at = $2, updated_at = $3 WHERE id = $4",
     [newStatus, completedAt, now, taskId]
   );
+  if (newStatus === "done") {
+    await logActivity("task", "completed", `Completed task`, taskId);
+  }
 }
 
 export async function deleteTask(id: string): Promise<void> {

@@ -32,12 +32,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useUIStore } from "@/store/useUIStore";
+import { useUIStore, type Theme } from "@/store/useUIStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSecurityLockStore } from "@/store/useSecurityLockStore";
 import { securityService } from "@/services/securityService";
 import { PasswordManagerModal } from "@/components/security/PasswordManagerModal";
+import { CurrencyCalculatorModal } from "@/components/finance/CurrencyCalculatorModal";
 import { LANGUAGES } from "@/lib/utils";
+import { SUPPORTED_CURRENCIES } from "@/lib/currencies";
+import { Calculator, Sparkles } from "lucide-react";
 
 const API_PROVIDERS = [
   { id: "hunter_io", label: "Hunter.io (Email Finder)", doc: "hunter.io/api" },
@@ -49,9 +52,21 @@ const API_PROVIDERS = [
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { theme, language, setTheme, setLanguage } = useUIStore();
+  const {
+    theme,
+    language,
+    mainCurrency,
+    customTheme,
+    setTheme,
+    setLanguage,
+    setMainCurrency,
+    setCustomTheme,
+  } = useUIStore();
   const { users, apiKeys, loadData, saveUser, removeUser, saveKey, removeKey } =
     useSettingsStore();
+
+  const [calcModalOpen, setCalcModalOpen] = useState(false);
+  const [showCustomThemeEditor, setShowCustomThemeEditor] = useState(theme === "custom");
 
   // Security Lock store
   const {
@@ -187,61 +202,365 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Row 1: Appearance & Language */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Appearance */}
+      {/* Row 1: Main Currency & Appearance */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Main Base Currency */}
         <Card className="border-border/60">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Palette className="h-4 w-4 text-primary" />
-              {t("settings.theme")}
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-emerald-400" />
+                Main Currency (DZ / Dinar)
+              </span>
+              <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                {mainCurrency}
+              </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex gap-2">
+          <CardContent className="space-y-3 pt-1">
+            <div className="space-y-1">
+              <label className="text-[11px] text-muted-foreground block font-medium">
+                Dashboard & Finance Base Currency
+              </label>
+              <select
+                value={mainCurrency}
+                onChange={(e) => setMainCurrency(e.target.value)}
+                className="w-full h-8 rounded-md border border-input bg-background px-2.5 text-xs font-semibold shadow-sm"
+              >
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} ({c.symbol}) — {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Button
-              variant={theme === "dark" ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              className="text-xs h-8"
-              onClick={() => setTheme("dark")}
+              className="w-full text-xs h-8 gap-1.5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+              onClick={() => setCalcModalOpen(true)}
             >
-              🌙 {t("theme.dark")} (Default)
-            </Button>
-            <Button
-              variant={theme === "light" ? "default" : "outline"}
-              size="sm"
-              className="text-xs h-8"
-              onClick={() => setTheme("light")}
-            >
-              ☀️ {t("theme.light")}
+              <Calculator className="h-3.5 w-3.5" />
+              Open Currency Calculator
             </Button>
           </CardContent>
         </Card>
 
-        {/* Language */}
-        <Card className="border-border/60">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Globe className="h-4 w-4 text-primary" />
-              {t("settings.language")}
-            </CardTitle>
+        {/* Theme & Palettes */}
+        <Card className="border-border/60 md:col-span-2">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="h-4 w-4 text-primary" />
+                Theme & Customization
+              </CardTitle>
+              <Badge variant="outline" className="text-[10px] capitalize">
+                {theme.replace("-", " ")}
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent className="flex gap-2 flex-wrap">
-            {LANGUAGES.map((lang) => (
+          <CardContent className="space-y-3 pt-1">
+            <div className="flex gap-2 flex-wrap">
               <Button
-                key={lang.code}
-                variant={language === lang.code ? "default" : "outline"}
+                variant={theme === "tokyo-night" ? "default" : "outline"}
                 size="sm"
                 className="text-xs h-8 gap-1.5"
-                onClick={() => setLanguage(lang.code as any)}
+                onClick={() => {
+                  setTheme("tokyo-night");
+                  setShowCustomThemeEditor(false);
+                }}
               >
-                <span>{lang.flag}</span>
-                <span>{lang.label}</span>
-                {language === lang.code && <Check className="h-3 w-3 text-primary" />}
+                <span>🌃</span>
+                <span>Tokyo Night</span>
+                <span className="text-[10px] opacity-75 font-normal">(Default)</span>
               </Button>
-            ))}
+              <Button
+                variant={theme === "dark" ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => {
+                  setTheme("dark");
+                  setShowCustomThemeEditor(false);
+                }}
+              >
+                🌙 Slate Dark
+              </Button>
+              <Button
+                variant={theme === "nord" ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => {
+                  setTheme("nord");
+                  setShowCustomThemeEditor(false);
+                }}
+              >
+                ❄️ Nord Frost
+              </Button>
+              <Button
+                variant={theme === "cyberpunk" ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => {
+                  setTheme("cyberpunk");
+                  setShowCustomThemeEditor(false);
+                }}
+              >
+                ⚡ Cyberpunk
+              </Button>
+              <Button
+                variant={theme === "light" ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => {
+                  setTheme("light");
+                  setShowCustomThemeEditor(false);
+                }}
+              >
+                ☀️ Light
+              </Button>
+              <Button
+                variant={theme === "custom" ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-8 gap-1 border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
+                onClick={() => {
+                  setTheme("custom");
+                  setShowCustomThemeEditor(true);
+                }}
+              >
+                <Sparkles className="h-3 w-3" />
+                Custom Theme
+              </Button>
+            </div>
+
+            {/* Custom Theme Editor Accordion / Panel */}
+            {(showCustomThemeEditor || theme === "custom") && (
+              <div className="p-3 rounded-lg bg-secondary/30 border border-purple-500/30 space-y-3 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-purple-300">
+                    Custom Theme Color Palette
+                  </span>
+                  <div className="flex gap-1.5 text-[10px]">
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 text-muted-foreground"
+                      onClick={() =>
+                        setCustomTheme({
+                          background: "#0f172a",
+                          card: "#1e293b",
+                          primary: "#38bdf8",
+                          foreground: "#f8fafc",
+                          border: "#334155",
+                          sidebar: "#090d16",
+                        })
+                      }
+                    >
+                      Deep Slate
+                    </button>
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 text-muted-foreground"
+                      onClick={() =>
+                        setCustomTheme({
+                          background: "#1e1e2e",
+                          card: "#252538",
+                          primary: "#cba6f7",
+                          foreground: "#cdd6f4",
+                          border: "#313244",
+                          sidebar: "#181825",
+                        })
+                      }
+                    >
+                      Catppuccin
+                    </button>
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 text-muted-foreground"
+                      onClick={() =>
+                        setCustomTheme({
+                          background: "#0d1117",
+                          card: "#161b22",
+                          primary: "#238636",
+                          foreground: "#e6edf3",
+                          border: "#30363d",
+                          sidebar: "#010409",
+                        })
+                      }
+                    >
+                      GitHub Dark
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Background Color
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.background}
+                        onChange={(e) =>
+                          setCustomTheme({ background: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.background}
+                        onChange={(e) =>
+                          setCustomTheme({ background: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Card / Surface
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.card}
+                        onChange={(e) =>
+                          setCustomTheme({ card: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.card}
+                        onChange={(e) =>
+                          setCustomTheme({ card: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Primary Accent
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.primary}
+                        onChange={(e) =>
+                          setCustomTheme({ primary: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.primary}
+                        onChange={(e) =>
+                          setCustomTheme({ primary: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Text Foreground
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.foreground}
+                        onChange={(e) =>
+                          setCustomTheme({ foreground: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.foreground}
+                        onChange={(e) =>
+                          setCustomTheme({ foreground: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Border / Outline
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.border}
+                        onChange={(e) =>
+                          setCustomTheme({ border: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.border}
+                        onChange={(e) =>
+                          setCustomTheme({ border: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-muted-foreground block">
+                      Sidebar Background
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="color"
+                        value={customTheme.sidebar}
+                        onChange={(e) =>
+                          setCustomTheme({ sidebar: e.target.value })
+                        }
+                        className="h-7 w-7 rounded cursor-pointer border border-input p-0 bg-transparent"
+                      />
+                      <Input
+                        value={customTheme.sidebar}
+                        onChange={(e) =>
+                          setCustomTheme({ sidebar: e.target.value })
+                        }
+                        className="h-7 text-[11px] font-mono px-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Row 1b: Language Selector */}
+      <Card className="border-border/60">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            {t("settings.language")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-2 flex-wrap">
+          {LANGUAGES.map((lang) => (
+            <Button
+              key={lang.code}
+              variant={language === lang.code ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-8 gap-1.5"
+              onClick={() => setLanguage(lang.code as any)}
+            >
+              <span>{lang.flag}</span>
+              <span>{lang.label}</span>
+              {language === lang.code && <Check className="h-3 w-3 text-primary" />}
+            </Button>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Row 2: Security & Master Password (App Lock) */}
       <Card className="border-border/60">
@@ -758,6 +1077,11 @@ export default function Settings() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <CurrencyCalculatorModal
+        open={calcModalOpen}
+        onOpenChange={setCalcModalOpen}
+      />
     </div>
   );
 }

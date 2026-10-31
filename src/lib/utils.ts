@@ -77,14 +77,28 @@ export function snakeToCamel<T = any>(obj: any): T {
 /** Format currency amount */
 export function formatCurrency(
   amount: number,
-  currency: string = "EUR"
+  currency: string = "DZD"
 ): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  const norm = (currency || "DZD").toUpperCase();
+  if (norm === "DZD" || norm === "DZ" || norm === "DA") {
+    return `${new Intl.NumberFormat("fr-DZ", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)} DA`;
+  }
+  try {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: norm,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)} ${norm}`;
+  }
 }
 
 /** Parse JSON safely */

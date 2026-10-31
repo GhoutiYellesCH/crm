@@ -161,6 +161,12 @@ pub fn run() {
             sql: include_str!("../migrations/002_recurring_revenue.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "projects_and_contacts_update",
+            sql: include_str!("../migrations/003_updates.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
