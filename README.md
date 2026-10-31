@@ -62,12 +62,23 @@ AegisFlow CRM is a powerful, offline-first desktop application designed for solo
 
 ## 🚀 Installation & Downloads
 
-### Ubuntu / Debian (.deb Package)
-Download the latest `AegisFlow_0.1.1_amd64.deb` from the [Releases](releases/) folder or GitHub Releases, then run:
+Official releases are available on [GitHub Releases](https://github.com/GhoutiYellesCH/crm/releases) and in the local [`releases/`](releases/) directory.
 
+### Windows (x64 Executable)
+Download the standalone executable:
+- **[AegisFlow_0.2.0_x64.exe](releases/AegisFlow_0.2.0_x64.exe)**
+
+Simply download and double-click to launch. No installer required.
+
+### Ubuntu / Debian (.deb Package)
+Download the Debian package:
+- **[AegisFlow_0.2.0_amd64.deb](releases/AegisFlow_0.2.0_amd64.deb)**
+
+Install via `dpkg`:
 ```bash
-sudo dpkg -i releases/AegisFlow_0.1.1_amd64.deb
+sudo dpkg -i releases/AegisFlow_0.2.0_amd64.deb
 ```
+or double-click the `.deb` file in your desktop environment's software center.
 
 ---
 
@@ -84,8 +95,8 @@ sudo dpkg -i releases/AegisFlow_0.1.1_amd64.deb
 ### Steps
 ```bash
 # 1. Clone repository
-git clone https://github.com/GhoutiYellesCH/aegisflow-crm.git
-cd aegisflow-crm
+git clone https://github.com/GhoutiYellesCH/crm.git
+cd crm
 
 # 2. Install dependencies
 npm install
